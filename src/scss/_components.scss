@@ -71,39 +71,23 @@
   }
 
   &--favorite:hover,
-  &--favorite[aria-pressed="true"] {
+  &--favorite.is-active {
     border-color: rgba($magenta-500, 0.6);
     color: $color-secondary-text;
   }
 
-  &--favorite[aria-pressed="true"] .icon {
+  &--favorite.is-active .icon {
     fill: currentColor;
   }
 
-  &--favorite[aria-pressed="true"] {
+  &--favorite.is-active {
     background-color: rgba($magenta-500, 0.14);
   }
 
-  &--primary#{&}--favorite:not([aria-pressed="true"]):hover {
+  &--primary#{&}--favorite:not(.is-active):hover {
     border-color: transparent;
     color: #fff;
   }
-}
-
-.demo-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem $space-2;
-  border: 1px dashed rgba(255, 255, 255, 0.3);
-  border-radius: $radius-pill;
-  color: $color-text-muted;
-  font-family: $font-body;
-  font-size: 0.6875rem;
-  font-weight: $fw-bold;
-  letter-spacing: 0.08em;
-  line-height: 1.4;
-  text-transform: uppercase;
-  vertical-align: middle;
 }
 
 // Etiquetas
@@ -303,12 +287,12 @@
     transition: color $duration-fast ease, border-color $duration-fast ease;
 
     &:hover,
-    &[aria-pressed="true"] {
+    &.is-active {
       border-color: rgba($magenta-500, 0.7);
       color: $color-secondary-text;
     }
 
-    &[aria-pressed="true"] .icon {
+    &.is-active .icon {
       fill: currentColor;
     }
   }
@@ -781,6 +765,13 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
+
+  &__hint {
+    color: $color-text-subtle;
+    font-weight: $fw-medium;
+    letter-spacing: 0;
+    text-transform: none;
+  }
 }
 
 .select {
@@ -812,6 +803,20 @@
   }
 }
 
+// Avisos
+%notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-3 $space-4;
+  margin-bottom: $space-5;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-md;
+  background-color: $color-surface;
+  font-size: $fs-sm;
+}
+
 .results {
   padding-top: $space-6;
 
@@ -834,6 +839,69 @@
     gap: $space-2;
     color: $color-text-muted;
     font-size: $fs-sm;
+  }
+
+  &__notice {
+    @extend %notice;
+  }
+
+  &__notice-icon {
+    color: $color-primary-text;
+  }
+
+  &__notice-text {
+    flex: 1 1 14rem;
+    color: $color-text-soft;
+  }
+}
+
+// Paginación
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+
+  &--top {
+    margin-bottom: $space-5;
+  }
+
+  &--bottom {
+    margin-top: $space-7;
+  }
+
+  &__current {
+    color: $color-text;
+    font-size: $fs-sm;
+    font-weight: $fw-bold;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  // En móvil, solo la flecha (el texto sigue disponible para lectores de pantalla)
+  @include mq-down(sm) {
+    &__button {
+      width: $tap-target;
+      padding-inline: 0;
+    }
+
+    &__text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+  }
+
+  &[aria-busy="true"] &__current {
+    color: $color-text-muted;
+  }
+
+  &__button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }
 
@@ -1173,16 +1241,9 @@
   padding-top: $space-6;
 
   &__notice {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: $space-3 $space-4;
-    margin-bottom: $space-5;
-    padding: $space-3 $space-4;
-    border: 1px solid rgba($red-500, 0.35);
-    border-radius: $radius-md;
+    @extend %notice;
+    border-color: rgba($red-500, 0.35);
     background-color: rgba($red-500, 0.06);
-    font-size: $fs-sm;
   }
 
   &__notice-icon {

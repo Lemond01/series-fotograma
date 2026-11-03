@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
+  <link rel="preconnect" href="https://static.tvmaze.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
   <link rel="stylesheet" href="css/main.css">
   <script>document.documentElement.classList.add("js");</script>
@@ -39,7 +40,7 @@
 
   <main id="contenido">
     <section class="hero" aria-labelledby="hero-title" aria-busy="true" data-hero>
-      <img class="hero__backdrop" alt="" width="680" height="1000" hidden data-hero-image>
+      <img class="hero__backdrop" alt="" width="680" height="1000" fetchpriority="high" hidden data-hero-image>
       <div class="container">
         <div class="hero__content">
           <p class="hero__eyebrow">Serie destacada</p>
@@ -54,7 +55,7 @@
           </p>
           <div class="hero__actions" data-hero-actions hidden>
             <a class="btn btn--primary" href="detalle.html" data-hero-link>Ver detalles <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></a>
-            <button class="btn btn--secondary btn--favorite" type="button" aria-pressed="false" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Añadir a favoritos</span></button>
+            <button class="btn btn--secondary btn--favorite" type="button" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Agregar a favoritos</span></button>
           </div>
         </div>
       </div>
@@ -264,7 +265,8 @@
       </nav>
       <div class="site-footer__credits">
         <h2 class="site-footer__heading">Créditos</h2>
-        <p>Datos e imágenes de series proporcionados por <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
       </div>
     </div>
     <div class="site-footer__bottom">

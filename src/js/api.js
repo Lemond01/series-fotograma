@@ -1,4 +1,4 @@
-import axios from '../../node_modules/axios/dist/esm/axios.min.js';
+import axios from '../vendor/axios/axios.min.js';
 
 const BASE_URL = 'https://api.tvmaze.com';
 const TIMEOUT_MS = 10000;
@@ -147,9 +147,25 @@ export async function searchShows(query, { signal } = {}) {
   return data.map((result) => normalizeShow(result?.show)).filter(Boolean);
 }
 
+// Páginas del índice en caché (las menos usadas se descartan)
+const INDEX_CACHE_LIMIT = 8;
+const indexCacheOrder = [];
+
+function touchIndexPage(key) {
+  const position = indexCacheOrder.indexOf(key);
+  if (position !== -1) indexCacheOrder.splice(position, 1);
+  indexCacheOrder.push(key);
+  while (indexCacheOrder.length > INDEX_CACHE_LIMIT) {
+    cache.delete(indexCacheOrder.shift());
+  }
+}
+
 // GET /shows?page=
-export async function getShowIndex(page = 0) {
-  const data = ensureArray(await cachedRequest(`index:${page}`, '/shows', { params: { page } }));
+export async function getShowIndex(page = 0, { signal } = {}) {
+  if (!Number.isInteger(page) || page < 0) throw new ApiError('invalid', 'Página no válida');
+  const key = `index:${page}`;
+  const data = ensureArray(await cachedRequest(key, '/shows', { params: { page }, signal }));
+  touchIndexPage(key);
   return data.map(normalizeShow).filter(Boolean);
 }
 

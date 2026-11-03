@@ -10,9 +10,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
+  <link rel="preconnect" href="https://static.tvmaze.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
   <link rel="stylesheet" href="css/main.css">
-  <script>document.documentElement.classList.add("js");</script>
+  <script>document.documentElement.classList.add("js");if(location.hash==="#favoritos")document.documentElement.classList.add("view-favorites");</script>
   <script type="module" src="src/js/explorar.js"></script>
 </head>
 <body>
@@ -76,7 +77,7 @@
 
         <div class="toolbar__row">
             <div class="field">
-              <label class="field__label" for="estado">Estado</label>
+              <label class="field__label" for="estado">Estado <span class="field__hint" data-status-scope></span></label>
               <div class="select">
                 <select class="select__control" id="estado" name="estado">
                   <option value="">Todos</option>
@@ -109,16 +110,18 @@
           <p class="results__count" aria-live="polite" data-results-count></p>
         </header>
 
+        <nav class="pagination pagination--top" aria-label="Paginación del catálogo, arriba" data-pagination>
+          <button class="btn btn--secondary pagination__button" type="button" data-page-prev><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg><span class="pagination__text">Anterior</span></button>
+          <p class="pagination__current" aria-live="polite" data-page-label>Página 1</p>
+          <button class="btn btn--secondary pagination__button" type="button" data-page-next><span class="pagination__text">Siguiente</span><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+        </nav>
+
+        <div class="results__notice" role="status" data-results-notice hidden>
+          <svg class="icon results__notice-icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+          <p class="results__notice-text" data-results-notice-text></p>
+        </div>
+
         <div class="results__status" data-results-status>
-          <div class="status-message" data-status="idle">
-            <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            <p class="status-message__title">Busca una serie</p>
-            <p class="status-message__text" data-idle-text>Escribe al menos 2 caracteres para buscar en TVmaze.</p>
-          </div>
-          <div class="status-message" data-status="loading" hidden>
-            <span class="spinner" aria-hidden="true"></span>
-            <p class="status-message__title">Cargando series…</p>
-          </div>
           <div class="status-message status-message--error" data-status="error" hidden>
             <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
             <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
@@ -137,7 +140,74 @@
           </div>
         </div>
 
-        <ul class="series-grid" data-results-grid hidden></ul>
+        <ul class="series-grid" aria-busy="true" data-results-grid>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+          <li class="series-card series-card--skeleton" aria-hidden="true">
+            <span class="series-card__poster skeleton skeleton--poster"></span>
+            <span class="skeleton skeleton--line"></span>
+            <span class="skeleton skeleton--line skeleton--short"></span>
+          </li>
+        </ul>
+
+        <nav class="pagination pagination--bottom" aria-label="Paginación del catálogo, abajo" data-pagination>
+          <button class="btn btn--secondary pagination__button" type="button" data-page-prev><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg><span class="pagination__text">Anterior</span></button>
+          <p class="pagination__current" data-page-label>Página 1</p>
+          <button class="btn btn--secondary pagination__button" type="button" data-page-next><span class="pagination__text">Siguiente</span><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+        </nav>
       </section>
 
       <section class="section favorites" id="favoritos" aria-labelledby="favorites-title" data-favorites-view hidden>
@@ -198,7 +268,8 @@
       </nav>
       <div class="site-footer__credits">
         <h2 class="site-footer__heading">Créditos</h2>
-        <p>Datos e imágenes de series proporcionados por <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
       </div>
     </div>
     <div class="site-footer__bottom">

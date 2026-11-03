@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "sass": "sass src/scss/main.scss css/main.css",
-    "sass:watch": "sass --watch src/scss/main.scss css/main.css"
+    "sass:watch": "sass --watch src/scss/main.scss css/main.css",
+    "vendor": "node -e \"const fs=require('fs');fs.mkdirSync('src/vendor/axios',{recursive:true});for(const f of ['dist/esm/axios.min.js','dist/esm/axios.min.js.map','LICENSE'])fs.copyFileSync('node_modules/axios/'+f,'src/vendor/axios/'+f.split('/').pop());console.log('Axios copiado en src/vendor/axios')\"",
+    "build": "npm run vendor && npm run sass"
   },
   "keywords": [
     "series",

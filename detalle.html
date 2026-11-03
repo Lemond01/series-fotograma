@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
+  <link rel="preconnect" href="https://static.tvmaze.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
   <link rel="stylesheet" href="css/main.css">
   <script>document.documentElement.classList.add("js");</script>
@@ -61,7 +62,7 @@
           <a class="btn btn--ghost show-hero__back" href="explorar.html"><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>Volver a Explorar</a>
           <div class="show-hero__inner">
             <div class="show-hero__poster media">
-              <img class="media__img" alt="" width="680" height="1000" hidden data-field="image">
+              <img class="media__img" alt="" width="680" height="1000" fetchpriority="high" hidden data-field="image">
             </div>
             <div class="show-hero__info">
               <p class="section__eyebrow">Serie</p>
@@ -69,7 +70,7 @@
               <ul class="meta-list" data-field="meta"></ul>
               <ul class="tag-list show-hero__genres" aria-label="Géneros" data-field="genres"></ul>
               <div class="show-hero__actions">
-                <button class="btn btn--primary btn--favorite" type="button" aria-pressed="false" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Añadir a favoritos</span></button>
+                <button class="btn btn--primary btn--favorite" type="button" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Agregar a favoritos</span></button>
                 <a class="btn btn--secondary" href="#episodios">Ver episodios</a>
               </div>
             </div>
@@ -174,7 +175,8 @@
       </nav>
       <div class="site-footer__credits">
         <h2 class="site-footer__heading">Créditos</h2>
-        <p>Datos e imágenes de series proporcionados por <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+        <p>Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
       </div>
     </div>
     <div class="site-footer__bottom">

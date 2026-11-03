@@ -395,3 +395,18 @@ main {
   min-height: 50vh;
   padding-block: $space-7;
 }
+
+// Mientras carga reserva la pantalla para que el footer no salte
+.detail-status:has(> [data-status="loading"]:not([hidden])) {
+  min-height: calc(100vh - #{$header-height});
+}
+
+// Vista de favoritos desde el primer pintado (ver script en explorar.html)
+.view-favorites [data-explore-view] {
+  display: none !important;
+}
+
+.view-favorites [data-favorites-view] {
+  display: block !important;
+  min-height: calc(100vh - #{$header-height});
+}

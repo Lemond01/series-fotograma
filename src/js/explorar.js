@@ -7,7 +7,9 @@ import { getFavoriteIds, removeFavorite, onFavoritesChange } from './favorites.j
 
 const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 400;
-const CATALOG_PAGE = 0;
+const PAGE_DEBOUNCE_MS = 300;
+const SKELETON_COUNT = 12;
+const MAX_PAGE_PARAM = 100000;
 const DEFAULT_SORT = 'relevancia';
 
 const KNOWN_STATUSES = ['Running', 'Ended', 'To Be Determined', 'In Development'];
@@ -31,6 +33,11 @@ const emptyTitle = statusContainer.querySelector('[data-empty-title]');
 const emptyText = statusContainer.querySelector('[data-empty-text]');
 const errorMessage = statusContainer.querySelector('[data-status="error"]');
 const relevanceOption = sortSelect.querySelector('option[value="relevancia"]');
+const resultsSection = grid.closest('.results');
+const paginations = [...document.querySelectorAll('[data-pagination]')];
+const statusScope = document.querySelector('[data-status-scope]');
+const notice = document.querySelector('[data-results-notice]');
+const noticeText = document.querySelector('[data-results-notice-text]');
 
 const MAIN_GENRES = [...genreList.querySelectorAll('[data-genre]')]
   .map((button) => button.dataset.genre)
@@ -45,7 +52,15 @@ const filters = {
   sort: DEFAULT_SORT,
 };
 
-let source = { mode: null, query: '', shows: [] };
+let source = { mode: null, query: '', page: null, shows: [] };
+
+// Catálogo: página pedida, última página cargada y primera página que no existe
+const catalog = { page: 0, loadedPage: null, endPage: null };
+
+// Géneros vistos durante la sesión (catálogo y búsquedas)
+const discoveredGenres = new Set();
+
+let pendingNotice = null;
 
 let activeController = null;
 let latestRequestId = 0;
@@ -56,6 +71,8 @@ const hasActiveFilters = () => filters.genres.size > 0 || filters.status !== '';
 function normalizeQuery(value) {
   return value.trim().replace(/\s+/g, ' ');
 }
+
+const currentMode = () => (normalizeQuery(input.value).length >= MIN_QUERY_LENGTH ? 'search' : 'catalog');
 
 function matchAllowed(value, allowed) {
   if (!value) return null;
@@ -74,13 +91,21 @@ function readStateFromUrl() {
     genres: new Set(genres),
     status: matchAllowed(params.get('status'), KNOWN_STATUSES) ?? '',
     sort: matchAllowed(params.get('sort'), SORT_VALUES) ?? DEFAULT_SORT,
+    page: parsePageParam(params.get('page')),
   };
+}
+
+function parsePageParam(value) {
+  if (!value || !/^\d{1,6}$/.test(value)) return 0;
+  const page = Number(value);
+  return page >= 1 && page <= MAX_PAGE_PARAM ? page - 1 : 0;
 }
 
 function writeStateToUrl() {
   const params = new URLSearchParams();
   const query = normalizeQuery(input.value);
   if (query.length >= MIN_QUERY_LENGTH) params.set('q', query);
+  else if (catalog.page > 0) params.set('page', String(catalog.page + 1));
   filters.genres.forEach((genre) => params.append('genre', genre));
   if (filters.status) params.set('status', filters.status);
   if (filters.sort !== DEFAULT_SORT) params.set('sort', filters.sort);
@@ -124,7 +149,7 @@ function applyFilters(shows, { genres, status, sort }) {
 let moreGenresExpanded = false;
 
 function getExtraGenres() {
-  const found = new Set(source.shows.flatMap((show) => show.genres));
+  const found = new Set(discoveredGenres);
   filters.genres.forEach((genre) => found.add(genre));
   return [...found]
     .filter((genre) => !MAIN_GENRES.includes(genre))
@@ -184,6 +209,9 @@ function syncStatusOptions() {
   });
   statusSelect.replaceChildren(...options);
   statusSelect.value = filters.status;
+
+  const scopes = { catalog: '· recuentos de esta página', search: '· recuentos de estos resultados' };
+  statusScope.textContent = scopes[source.mode] ?? '';
 }
 
 function syncSortSelect() {
@@ -191,23 +219,56 @@ function syncSortSelect() {
   sortSelect.value = filters.sort;
 }
 
+function syncPagination({ loading = false } = {}) {
+  const canGoBack = catalog.page > 0;
+  const canGoForward = catalog.endPage === null || catalog.page + 1 < catalog.endPage;
+  paginations.forEach((nav) => {
+    nav.hidden = currentMode() !== 'catalog';
+    nav.setAttribute('aria-busy', String(loading));
+    nav.querySelector('[data-page-prev]').disabled = !canGoBack;
+    nav.querySelector('[data-page-next]').disabled = !canGoForward;
+    nav.querySelector('[data-page-label]').textContent = loading
+      ? `Cargando página ${catalog.page + 1}…`
+      : `Página ${catalog.page + 1}`;
+  });
+}
+
 function syncControls() {
   syncGenreButtons();
   syncStatusOptions();
   syncSortSelect();
+  syncPagination();
   clearButtons.forEach((button) => { button.hidden = !hasActiveFilters(); });
 }
 
 function describeSource() {
   return source.mode === 'search'
     ? `resultados para «${source.query}»`
-    : 'series de la primera página del índice de TVmaze';
+    : `series de la página ${source.page + 1} del índice de TVmaze`;
 }
 
 function hideResults() {
   grid.hidden = true;
+  grid.removeAttribute('aria-busy');
   grid.replaceChildren();
   count.textContent = '';
+}
+
+function showSkeletons() {
+  grid.replaceChildren(...Array.from({ length: SKELETON_COUNT }, createSkeletonCard));
+  grid.setAttribute('aria-busy', 'true');
+  grid.hidden = false;
+  count.textContent = '';
+  showStatus(statusContainer, null);
+}
+
+function showNotice(text) {
+  noticeText.textContent = text;
+  notice.hidden = false;
+}
+
+function hideNotice() {
+  notice.hidden = true;
 }
 
 function render() {
@@ -215,15 +276,20 @@ function render() {
   writeStateToUrl();
   if (!source.mode) return;
 
-  title.textContent = source.mode === 'search' ? 'Resultados' : 'Catálogo';
+  title.textContent = source.mode === 'search' ? 'Resultados de búsqueda' : 'Catálogo';
   const total = source.shows.length;
+
+  if (pendingNotice) {
+    showNotice(pendingNotice);
+    pendingNotice = null;
+  }
 
   if (total === 0) {
     hideResults();
     emptyTitle.textContent = 'Sin resultados';
     emptyText.textContent = source.mode === 'search'
       ? `No encontramos series para «${source.query}». Prueba con otro título.`
-      : 'TVmaze no devolvió series para el catálogo.';
+      : `TVmaze no devolvió series en la página ${source.page + 1}.`;
     showStatus(statusContainer, 'empty');
     return;
   }
@@ -233,12 +299,15 @@ function render() {
   if (visible.length === 0) {
     hideResults();
     emptyTitle.textContent = 'Ninguna serie coincide';
-    emptyText.textContent = `Ninguna de las ${total} ${describeSource()} cumple los filtros seleccionados.`;
+    emptyText.textContent = source.mode === 'search'
+      ? `Ninguno de los ${total} ${describeSource()} cumple los filtros seleccionados.`
+      : `Ninguna de las ${total} ${describeSource()} cumple los filtros. Prueba en otra página o cambia los filtros.`;
     showStatus(statusContainer, 'empty');
     return;
   }
 
   grid.replaceChildren(...visible.map(createSeriesCard));
+  grid.removeAttribute('aria-busy');
   grid.hidden = false;
   count.textContent = hasActiveFilters()
     ? `Mostrando ${visible.length} de ${total} ${describeSource()}`
@@ -248,6 +317,7 @@ function render() {
 
 // Carga de datos
 function cancelActiveRequest() {
+  debouncedPageLoad.cancel();
   activeController?.abort();
   activeController = null;
   latestRequestId += 1;
@@ -255,25 +325,39 @@ function cancelActiveRequest() {
 
 async function load(mode, query = '') {
   cancelActiveRequest();
-  const controller = mode === 'search' ? new AbortController() : null;
+  const controller = new AbortController();
   activeController = controller;
   const requestId = latestRequestId;
+  const page = catalog.page;
   lastRequest = { mode, query };
 
-  hideResults();
-  showStatus(statusContainer, 'loading');
+  hideNotice();
+  showSkeletons();
+  syncPagination({ loading: mode === 'catalog' });
 
   try {
     const shows = mode === 'search'
       ? await searchShows(query, { signal: controller.signal })
-      : await getShowIndex(CATALOG_PAGE);
-    if (requestId !== latestRequestId) return; // respuesta de una búsqueda anterior
-    source = { mode, query, shows };
+      : await getShowIndex(page, { signal: controller.signal });
+    if (requestId !== latestRequestId) return; // respuesta de una solicitud anterior
+
+    if (mode === 'catalog' && shows.length === 0) {
+      handleUnavailablePage(page);
+      return;
+    }
+    shows.forEach((show) => show.genres.forEach((genre) => discoveredGenres.add(genre)));
+    if (mode === 'catalog') catalog.loadedPage = page;
+    source = { mode, query, page: mode === 'catalog' ? page : null, shows };
     render();
   } catch (error) {
     if (error.type === 'aborted' || requestId !== latestRequestId) return;
-    console.error(`[Explorar] Error al cargar ${mode === 'search' ? `la búsqueda «${query}»` : 'el catálogo'}:`, error);
-    source = { mode: null, query: '', shows: [] };
+    if (mode === 'catalog' && error.type === 'not-found') {
+      handleUnavailablePage(page);
+      return;
+    }
+    const target = mode === 'search' ? `la búsqueda «${query}»` : `la página ${page + 1} del catálogo`;
+    console.error(`[Explorar] Error al cargar ${target}:`, error);
+    source = { mode: null, query: '', page: null, shows: [] };
     hideResults();
     syncControls();
     fillErrorMessage(errorMessage, error);
@@ -283,10 +367,48 @@ async function load(mode, query = '') {
   }
 }
 
+const debouncedPageLoad = debounce(() => load('catalog'), PAGE_DEBOUNCE_MS);
+
+// TVmaze responde 404 (o una lista vacía) después de la última página
+function handleUnavailablePage(page) {
+  catalog.endPage = Math.min(catalog.endPage ?? Infinity, page);
+  const fallback = catalog.loadedPage !== null && catalog.loadedPage < page ? catalog.loadedPage : 0;
+
+  if (page === 0) {
+    source = { mode: null, query: '', page: null, shows: [] };
+    hideResults();
+    syncControls();
+    fillErrorMessage(errorMessage, { type: 'not-found' });
+    showStatus(statusContainer, 'error');
+    return;
+  }
+  pendingNotice = `La página ${page + 1} no está disponible en el índice de TVmaze. Se muestra la página ${fallback + 1}.`;
+  catalog.page = fallback;
+  load('catalog');
+}
+
+function goToPage(page) {
+  if (page < 0 || (catalog.endPage !== null && page >= catalog.endPage)) return;
+  catalog.page = page;
+  cancelActiveRequest();
+  hideNotice();
+  showSkeletons();
+  syncPagination({ loading: true });
+  writeStateToUrl();
+
+  if (resultsSection.getBoundingClientRect().top < 0) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    resultsSection.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+  debouncedPageLoad();
+}
+
 function updateSource(rawValue, { force = false } = {}) {
   const query = normalizeQuery(rawValue);
   const mode = query.length >= MIN_QUERY_LENGTH ? 'search' : 'catalog';
-  const sameSource = source.mode === mode && (mode === 'catalog' || source.query.toLowerCase() === query.toLowerCase());
+  const sameSource = source.mode === mode && (mode === 'catalog'
+    ? source.page === catalog.page
+    : source.query.toLowerCase() === query.toLowerCase());
 
   if (sameSource && !force) {
     render();
@@ -350,12 +472,18 @@ errorMessage.querySelector('[data-retry]')?.addEventListener('click', () => {
   if (lastRequest) load(lastRequest.mode, lastRequest.query);
 });
 
+paginations.forEach((nav) => {
+  nav.querySelector('[data-page-prev]').addEventListener('click', () => goToPage(catalog.page - 1));
+  nav.querySelector('[data-page-next]').addEventListener('click', () => goToPage(catalog.page + 1));
+});
+
 // Estado inicial desde la URL
 const initial = readStateFromUrl();
 input.value = initial.query;
 filters.genres = initial.genres;
 filters.status = initial.status;
 filters.sort = initial.sort;
+catalog.page = initial.page;
 syncControls();
 
 // Vista de favoritos
@@ -392,6 +520,7 @@ function setView(view) {
   currentView = view;
   const favorites = view === 'favorites';
 
+  document.documentElement.classList.toggle('view-favorites', favorites);
   exploreSections.forEach((section) => { section.hidden = favorites; });
   favoritesView.hidden = !favorites;
 

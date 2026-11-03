@@ -76,13 +76,19 @@ export function initPage() {
 // Favoritos
 const FAVORITE_SELECTOR = '[data-favorite-toggle]';
 
+// El nombre accesible indica la acción; el estado visual va en .is-active
 export function syncFavoriteButton(button) {
   const id = button.dataset.showId;
   if (!id) return;
   const active = isFavorite(id);
-  button.setAttribute('aria-pressed', String(active));
+  button.classList.toggle('is-active', active);
   const label = button.querySelector('[data-favorite-label]');
-  if (label) label.textContent = active ? 'En favoritos' : 'Añadir a favoritos';
+  if (label) {
+    label.textContent = active ? 'Quitar de favoritos' : 'Agregar a favoritos';
+  } else {
+    const name = button.dataset.showName;
+    button.setAttribute('aria-label', active ? `Quitar ${name} de favoritos` : `Agregar ${name} a favoritos`);
+  }
 }
 
 export function bindFavoriteButton(button, show) {
@@ -95,7 +101,12 @@ export function bindFavoriteButton(button, show) {
 function syncFavoritesCount() {
   const count = getFavoritesCount();
   document.querySelectorAll('[data-favorites-count]').forEach((badge) => {
-    badge.textContent = count;
+    // Se lee "Favoritos (3 guardadas)"; visualmente solo el número
+    badge.replaceChildren(
+      createElement('span', 'u-visually-hidden', ' ('),
+      String(count),
+      createElement('span', 'u-visually-hidden', count === 1 ? ' guardada)' : ' guardadas)'),
+    );
     badge.hidden = count === 0;
   });
 }
@@ -211,7 +222,6 @@ export function createSeriesCard(show) {
   const favorite = createElement('button', 'series-card__favorite');
   favorite.type = 'button';
   favorite.dataset.favoriteToggle = '';
-  favorite.setAttribute('aria-label', `Guardar ${show.name} en favoritos`);
   favorite.append(createIcon('heart'));
   bindFavoriteButton(favorite, show);
   card.append(favorite);
