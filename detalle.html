@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Información detallada de una serie: sinopsis, géneros, temporadas y episodios.">
+  <meta name="theme-color" content="#070a12">
+  <title>Detalle de la serie — Series Atlas</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="css/main.css">
+  <script>document.documentElement.classList.add("js");</script>
+  <script type="module" src="src/js/detalle.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="site-logo" href="index.html" aria-label="Series Atlas, ir al inicio">
+        <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
+        <span>Series <span class="site-logo__accent">Atlas</span></span>
+      </a>
+      <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-menu"></use></svg>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Navegación principal">
+        <ul class="site-nav__list">
+          <li><a class="site-nav__link" href="index.html">Inicio</a></li>
+          <li><a class="site-nav__link" href="explorar.html">Explorar</a></li>
+          <li><a class="site-nav__link site-nav__link--favorites" href="explorar.html#favoritos" data-nav-favorites><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg>Favoritos<span class="site-nav__count" data-favorites-count hidden></span></a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenido">
+    <div class="container detail-status" data-detail-status>
+      <div class="status-message" data-status="loading">
+        <span class="spinner" aria-hidden="true"></span>
+        <p class="status-message__title">Cargando serie…</p>
+      </div>
+      <div class="status-message status-message--error" data-status="error" hidden>
+        <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+        <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
+        <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
+        <div class="status-message__actions">
+        <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+        <a class="btn btn--primary" href="explorar.html"><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>Ir a Explorar</a>
+        </div>
+      </div>
+    </div>
+
+    <div data-detail-content hidden>
+      <section class="show-hero" aria-labelledby="show-title">
+        <img class="show-hero__backdrop" alt="" width="680" height="1000" hidden data-field="backdrop">
+        <div class="container">
+          <a class="btn btn--ghost show-hero__back" href="explorar.html"><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>Volver a Explorar</a>
+          <div class="show-hero__inner">
+            <div class="show-hero__poster media">
+              <img class="media__img" alt="" width="680" height="1000" hidden data-field="image">
+            </div>
+            <div class="show-hero__info">
+              <p class="section__eyebrow">Serie</p>
+              <h1 class="show-hero__title" id="show-title" data-field="name"></h1>
+              <ul class="meta-list" data-field="meta"></ul>
+              <ul class="tag-list show-hero__genres" aria-label="Géneros" data-field="genres"></ul>
+              <div class="show-hero__actions">
+                <button class="btn btn--primary btn--favorite" type="button" aria-pressed="false" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Añadir a favoritos</span></button>
+                <a class="btn btn--secondary" href="#episodios">Ver episodios</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container show-layout">
+        <div class="show-layout__main">
+          <section aria-labelledby="synopsis-title">
+            <header class="section__header">
+              <h2 class="section__title" id="synopsis-title">Sinopsis</h2>
+            </header>
+            <div class="prose" data-field="summary"></div>
+          </section>
+
+          <section id="episodios" aria-labelledby="episodes-title">
+            <header class="section__header">
+              <div>
+                <h2 class="section__title" id="episodes-title">Temporadas y episodios</h2>
+                <p class="section__description" data-episodes-summary>Despliega una temporada para ver sus episodios.</p>
+              </div>
+            </header>
+            <div data-episodes-status>
+              <div class="status-message" data-status="loading">
+                <span class="spinner" aria-hidden="true"></span>
+                <p class="status-message__title">Cargando episodios…</p>
+              </div>
+              <div class="status-message status-message--error" data-status="error" hidden>
+                <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+                <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
+                <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
+                <div class="status-message__actions">
+                <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+                </div>
+              </div>
+              <div class="status-message" data-status="empty" hidden>
+                <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-film"></use></svg>
+                <p class="status-message__title">Sin episodios</p>
+                <p class="status-message__text">TVmaze no tiene episodios registrados para esta serie.</p>
+              </div>
+            </div>
+            <div class="season-list" data-seasons></div>
+          </section>
+        </div>
+
+        <aside class="show-layout__aside" aria-labelledby="facts-title">
+          <div class="panel">
+            <h2 class="panel__title" id="facts-title">Ficha técnica</h2>
+            <dl class="fact-list">
+              <div class="fact-list__item" data-fact="premiered">
+                <dt class="fact-list__term">Estreno</dt>
+                <dd class="fact-list__value" data-field="premiered">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="ended">
+                <dt class="fact-list__term">Finalización</dt>
+                <dd class="fact-list__value" data-field="ended">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="status">
+                <dt class="fact-list__term">Estado</dt>
+                <dd class="fact-list__value" data-field="status">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="network">
+                <dt class="fact-list__term">Cadena</dt>
+                <dd class="fact-list__value" data-field="network">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="language">
+                <dt class="fact-list__term">Idioma</dt>
+                <dd class="fact-list__value" data-field="language">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="runtime">
+                <dt class="fact-list__term">Duración</dt>
+                <dd class="fact-list__value" data-field="runtime">—</dd>
+              </div>
+              <div class="fact-list__item" data-fact="schedule">
+                <dt class="fact-list__term">Horario</dt>
+                <dd class="fact-list__value" data-field="schedule">—</dd>
+              </div>
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <div class="site-footer__brand">
+        <a class="site-logo" href="index.html">
+          <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
+          <span>Series <span class="site-logo__accent">Atlas</span></span>
+        </a>
+        <p class="site-footer__description">Un atlas para descubrir y consultar series de televisión: estrenos, géneros, temporadas y episodios.</p>
+      </div>
+      <nav class="site-footer__nav" aria-label="Navegación del pie de página">
+        <h2 class="site-footer__heading">Navegar</h2>
+        <ul class="site-footer__list">
+          <li><a class="site-footer__link" href="index.html">Inicio</a></li>
+          <li><a class="site-footer__link" href="explorar.html">Explorar</a></li>
+          <li><a class="site-footer__link" href="explorar.html#favoritos">Favoritos</a></li>
+        </ul>
+      </nav>
+      <div class="site-footer__credits">
+        <h2 class="site-footer__heading">Créditos</h2>
+        <p>Datos e imágenes de series proporcionados por <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
+      </div>
+    </div>
+    <div class="site-footer__bottom">
+      <p class="container">© 2026 Series Atlas · Proyecto educativo.</p>
+    </div>
+  </footer>
+</body>
+</html>
