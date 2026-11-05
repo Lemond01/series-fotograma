@@ -1,12 +1,12 @@
-<h1 align="center">Series Atlas</h1>
+<h1 align="center">Fotograma</h1>
 
 <p align="center">
-  <strong>Un atlas para descubrir y consultar series de televisión.</strong><br>
-  Busca una serie, recorre el catálogo, revisa sus temporadas y guarda tus favoritas.
+  <strong>Tu guía para descubrir series.</strong><br>
+  Mira qué se estrena hoy, encuentra tu próxima serie favorita y guárdala para no perderla de vista.
 </p>
 
 <p align="center">
-  <img src="docs/capturas/inicio.jpg" alt="Página de inicio de Series Atlas con Breaking Bad como serie destacada" width="900">
+  <img src="docs/capturas/portada.jpg" alt="Portada de Fotograma con Game of Thrones como serie destacada y, a la derecha, los pósteres de la serie anterior y la siguiente" width="900">
 </p>
 
 <p align="center">
@@ -17,87 +17,92 @@
 
 ---
 
-## Sobre el proyecto
+## Qué es Fotograma
 
-Series Atlas es una aplicación web que desarrollé para descubrir series y consultar su información: sinopsis, géneros, puntuación, temporadas y episodios. Todos los datos son reales y llegan de la API pública de TVmaze.
+Fotograma es una guía para descubrir series de televisión. Reúne el catálogo de [TVmaze](https://www.tvmaze.com/), con miles de series reales, y lo presenta como una plataforma de streaming: pósteres grandes, portadas que se mueven y todo a uno o dos clics.
 
-Quería construir un sitio completo sin frameworks. Mi objetivo era que se sintiera como una plataforma de series, que funcionara bien en el móvil y que resolviera los casos difíciles: búsquedas sin resultados, errores de conexión o datos que faltan.
-
----
-
-## Explora Series Atlas
-
-### Inicio
-
-Una serie destacada, un buscador, una selección de series para empezar, accesos directos por género y los estrenos web del día.
-
-<p align="center">
-  <img src="docs/capturas/inicio-generos-programacion.jpg" alt="Secciones de géneros y programación web en la página de inicio" width="800">
-</p>
-
-### Catálogo, búsqueda y filtros
-
-Recorro el catálogo de TVmaze página a página o busco por título. Los resultados se pueden filtrar por uno o varios géneros y por estado, y ordenar por puntuación, nombre o año.
-
-<p align="center">
-  <img src="docs/capturas/explorar-filtros.jpg" alt="Explorar en la página 2 del catálogo, con los géneros Drama y Acción y orden por mejor puntuación" width="800">
-</p>
-
-### Detalle, temporadas y episodios
-
-Cada serie tiene su ficha con póster, sinopsis, géneros y datos técnicos. Los episodios aparecen agrupados por temporada, en secciones que se abren y se cierran.
-
-<p align="center">
-  <img src="docs/capturas/detalle.jpg" alt="Ficha de Stranger Things con sinopsis, ficha técnica y la primera temporada desplegada" width="800">
-</p>
-
-### Favoritos
-
-Guardo cualquier serie con el corazón y la encuentro después en mi colección, aunque cierre el navegador.
-
-<p align="center">
-  <img src="docs/capturas/favoritos.jpg" alt="Vista de favoritos con cuatro series guardadas" width="800">
-</p>
-
-### En el móvil
-
-<p align="center">
-  <img src="docs/capturas/movil.jpg" alt="Inicio y Explorar con su paginación en una pantalla de móvil" width="560">
-</p>
+Aquí no se reproducen episodios. Fotograma te ayuda a decidir qué ver: de qué trata cada serie, cuántas temporadas tiene, cómo la ha puntuado el público y qué se estrena hoy.
 
 ---
 
-## Funcionalidades
+## Un recorrido por Fotograma
 
-- **Catálogo** con el índice completo de TVmaze.
-- **Paginación** para recorrerlo página a página.
-- **Búsqueda** por título mientras escribo.
-- **Filtros** por género y estado, y **orden** por puntuación, nombre o año.
-- **Ficha de cada serie** con sinopsis, datos técnicos, temporadas y episodios.
-- **Favoritos** guardados en el navegador, sin registro.
-- **Diseño adaptable** del móvil al escritorio.
+### Una portada con vida propia
+
+Cada visita empieza con una serie destacada a pantalla completa. Las series van cambiando solas y, en pantallas grandes, sus pósteres se deslizan a un lado para que sepas cuál viene después. Basta un clic en el póster o en el título para abrir su ficha.
+
+### Una selección para empezar
+
+Seis series elegidas a mano para quien no sabe por dónde empezar. Es una selección propia, no un ranking.
+
+<p align="center">
+  <img src="docs/capturas/inicio-seleccion.jpg" alt="Sección Nuestra selección, con seis series elegidas: Breaking Bad, The Wire, The Expanse, Fargo, Westworld y Attack on Titan" width="800">
+</p>
+
+### ¿Qué historia buscas?
+
+Elige un género (drama, comedia, ciencia ficción, crimen, terror, fantasía, thriller o romance) y al instante aparecen algunas de sus series mejor valoradas. En la misma portada te esperan también las series más populares y los estrenos del día, con la hora ajustada a tu zona.
+
+<p align="center">
+  <img src="docs/capturas/inicio-generos.jpg" alt="Sección de géneros con Drama elegido y seis de sus series mejor valoradas" width="800">
+</p>
+
+### Todo el catálogo a tu alcance
+
+Recorre el catálogo completo, filtra por género o por estado (en emisión, finalizada…) y ordena por puntuación, nombre o año. ¿Ya sabes qué buscas? El buscador está en el menú, en cualquier página.
+
+<p align="center">
+  <img src="docs/capturas/explorar-generos.jpg" alt="Catálogo filtrado por drama y ordenado por mejor puntuación" width="800">
+</p>
+
+### Cada serie, a fondo
+
+Cada serie tiene su propia ficha: póster, sinopsis, géneros, años de emisión, duración y puntuación. Sus temporadas se recorren una a una, con cada episodio, su fecha de estreno y un pequeño resumen.
+
+<p align="center">
+  <img src="docs/capturas/ficha.jpg" alt="Ficha de Stranger Things con su póster, géneros, puntuación y botones para guardarla o ver sus episodios" width="800">
+</p>
+
+<p align="center">
+  <img src="docs/capturas/ficha-episodios.jpg" alt="Temporadas de Stranger Things con la primera elegida y la lista de sus episodios" width="800">
+</p>
+
+### Tus favoritas, siempre a mano
+
+Pulsa el corazón en cualquier serie y quedará en tu colección. Sin registrarte, y sigue ahí aunque cierres el navegador.
+
+<p align="center">
+  <img src="docs/capturas/mis-favoritos.jpg" alt="Colección de favoritos con ocho series guardadas" width="800">
+</p>
+
+### También en tu móvil
+
+Fotograma se adapta a cualquier pantalla: el menú se recoge, las tarjetas se reorganizan y todo sigue a mano con el pulgar.
+
+<p align="center">
+  <img src="docs/capturas/movil-vistas.jpg" alt="Inicio, catálogo y ficha de Breaking Bad en la pantalla de un móvil" width="700">
+</p>
 
 ---
 
-## Diseño y experiencia
+## Lo que puedes hacer
 
-- **Estética cinematográfica:** fondos en azul noche, acentos violeta y magenta, y títulos con una tipografía editorial.
-- **Los pósteres como protagonistas:** las imágenes de cada serie guían la navegación.
-- **Navegación sencilla:** tres páginas (Inicio, Explorar y Detalle) y acceso a Favoritos desde cualquier lugar.
-- **Responsive:** en el móvil, el menú se recoge, las tarjetas se reorganizan y los controles se adaptan a la pantalla.
-- **Estados cuidados:** marcadores de carga, mensajes claros cuando no hay resultados y opción de reintentar si algo falla.
-
----
-
-## Tecnologías utilizadas
-
-**HTML5** · **Sass / SCSS** · **JavaScript Vanilla** · **Axios** · **TVmaze API** · **LocalStorage** · **Git y GitHub**
+- **Descubrir** series nuevas desde la portada, la selección y los géneros.
+- **Ver qué se estrena hoy** en las plataformas digitales.
+- **Explorar** el catálogo completo, con filtros y distintos órdenes.
+- **Buscar** cualquier serie por su título.
+- **Conocer cada serie a fondo**, con sus temporadas y episodios.
+- **Guardar tus favoritas** sin crear una cuenta.
+- **Usarlo en cualquier dispositivo**, del móvil a una pantalla grande.
 
 ---
 
-## Prueba Series Atlas
+## Pensado para disfrutarlo
 
-La demo todavía no está publicada. Cuando esté disponible en GitHub Pages, dejaré aquí el enlace.
+- **Aire de cine:** fondos oscuros, acentos violeta y tipografías con carácter.
+- **Los pósteres mandan:** las imágenes de cada serie guían el recorrido.
+- **Movimiento suave:** la portada cambia sola y las transiciones acompañan sin distraer.
+- **Siempre claro:** si una búsqueda no encuentra nada o falla la conexión, Fotograma te lo dice y te deja volver a intentarlo.
 
 ---
 
@@ -105,12 +110,17 @@ La demo todavía no está publicada. Cuando esté disponible en GitHub Pages, de
 
 - **Datos:** [TVmaze](https://www.tvmaze.com/). Los datos de su [API](https://www.tvmaze.com/api) están bajo licencia [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 - **Imágenes:** los pósteres y fotogramas los sirve TVmaze y pertenecen a sus respectivos titulares. La licencia anterior se refiere a los datos, y este proyecto no posee derechos sobre las imágenes.
-- **Tipografías:** [Fraunces](https://fonts.google.com/specimen/Fraunces) y [Manrope](https://fonts.google.com/specimen/Manrope), de Google Fonts.
+- **Tipografías:** [Kanit](https://fonts.google.com/specimen/Kanit) y [Lato](https://fonts.google.com/specimen/Lato), de Google Fonts.
 - **Axios:** licencia MIT, incluida en `src/vendor/axios/LICENSE`.
 
 ---
 
-## Ejecución local
+<details>
+<summary><strong>Ver Fotograma en tu equipo</strong></summary>
+
+<br>
+
+Fotograma está hecho con HTML, Sass y JavaScript, y obtiene sus datos de TVmaze. Para abrirlo en tu equipo:
 
 ```bash
 npm install
@@ -118,4 +128,6 @@ npm run build
 python -m http.server 8000
 ```
 
-Después abro <http://localhost:8000>. También funciona con la extensión Live Server de VS Code. Necesita un servidor local porque el proyecto usa módulos de JavaScript.
+Después abre <http://localhost:8000>. También funciona con la extensión Live Server de VS Code. Necesita un servidor local porque el proyecto usa módulos de JavaScript.
+
+</details>
