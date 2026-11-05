@@ -1,14 +1,26 @@
 import {
-  createElement, createIcon, detailUrl, bindFavoriteButton, htmlToText, truncate,
-  translateGenre, formatRating,
+  createElement, createIcon, detailUrl, htmlToText, truncate,
+  translateGenre, formatRating, watchImage,
 } from './ui.js';
 
-const SPRITE_URL = 'assets/icons/sprite.svg';
 const IMAGE_WAIT_MS = 2500;
 const SUMMARY_LENGTH = 240;
+// Pósteres de la derecha (desde lg): 17rem como el de la ficha si caben; si no, lo que quede a la
+// derecha del texto, con un mínimo por debajo del cual no se muestran
+const TRIO_MAX_CARD = 272;
+const TRIO_MIN_CARD = 140;
+const TRIO_TEXT_GAP = 48; // aire mínimo entre el texto y los pósteres
+const IDLE_MS = 2500; // con el ratón quieto este tiempo, se ocultan los controles
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const pad = (n) => String(n).padStart(2, '0');
+const trioQuery = window.matchMedia('(min-width: 1024px)');
+
+// Valor en px de una variable CSS escrita en rem o en px (getPropertyValue la devuelve tal cual)
+function cssLength(element, name) {
+  const value = getComputedStyle(element).getPropertyValue(name).trim();
+  const number = parseFloat(value) || 0;
+  return value.endsWith('rem') ? number * parseFloat(getComputedStyle(document.documentElement).fontSize) : number;
+}
 
 // Diapositivas
 function createSlide(show, index, total) {
@@ -36,7 +48,11 @@ function createSlide(show, index, total) {
   }
 
   const content = createElement('div', 'container hero__content');
-  const title = createElement('h2', 'hero__title', show.name);
+  // Sin botón «Ver ficha», el título enlaza a la ficha (con teclado y en móvil es el acceso)
+  const title = createElement('h2', 'hero__title');
+  const titleLink = createElement('a', 'hero__title-link', show.name);
+  titleLink.href = detailUrl(show.id);
+  title.append(titleLink);
 
   const meta = createElement('ul', 'meta-list');
   [show.year, show.genres.slice(0, 2).map(translateGenre).join(', ') || null]
@@ -56,21 +72,37 @@ function createSlide(show, index, total) {
   const description = createElement('p', 'hero__description', summary ? truncate(summary, SUMMARY_LENGTH) : 'Sinopsis no disponible.');
   if (summary) description.lang = 'en';
 
-  const actions = createElement('div', 'hero__actions');
-  const link = createElement('a', 'btn btn--primary', 'Ver ficha');
-  link.href = detailUrl(show.id);
-  link.append(createIcon('arrow-right', 'icon icon--sm'));
-  const favorite = createElement('button', 'btn btn--secondary btn--favorite');
-  favorite.type = 'button';
-  favorite.dataset.favoriteToggle = '';
-  favorite.append(createIcon('heart'), createElement('span', null, 'Agregar a favoritos'));
-  favorite.lastChild.dataset.favoriteLabel = '';
-  bindFavoriteButton(favorite, show);
-  actions.append(link, favorite);
-
-  content.append(createElement('p', 'hero__eyebrow', 'Serie destacada'), title, meta, description, actions);
+  content.append(createElement('p', 'hero__eyebrow', 'Serie destacada'), title, meta, description);
   slide.append(media, content);
   return slide;
+}
+
+// Póster de la columna derecha (desde lg): anterior, actual o siguiente. Es un enlace a la ficha
+// (el central la abre al hacer clic). La columna es decorativa para el teclado y los lectores de
+// pantalla: ahí el acceso es el título
+function createTrioCard(show) {
+  const card = createElement('a', 'hero__trio-card');
+  card.href = detailUrl(show.id);
+  card.tabIndex = -1;
+  const poster = createElement('div', 'hero__trio-poster media');
+  if (show.image) {
+    const img = createElement('img', 'media__img');
+    // loading antes de src: mientras la columna no se muestre, no se descargan
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.alt = '';
+    if (show.image.original !== show.image.medium) {
+      img.sizes = `${TRIO_MAX_CARD}px`;
+      img.srcset = `${show.image.medium} 210w, ${show.image.original} 680w`;
+    }
+    img.src = show.image.medium;
+    poster.append(img);
+    watchImage(img);
+  } else {
+    poster.classList.add('media--empty');
+  }
+  card.append(poster);
+  return card;
 }
 
 // Carga una diapositiva bajo demanda; resuelve al cargar, fallar o agotar la espera
@@ -97,9 +129,7 @@ export function createHeroCarousel(root, shows, { interval = 7000 } = {}) {
   const slidesEl = root.querySelector('[data-hero-slides]');
   const controls = root.querySelector('[data-hero-controls]');
   const dotsEl = root.querySelector('[data-hero-dots]');
-  const currentEl = root.querySelector('[data-hero-current]');
-  const totalEl = root.querySelector('[data-hero-total]');
-  const toggle = root.querySelector('[data-hero-toggle]');
+  const trio = root.querySelector('[data-hero-trio]');
   const status = root.querySelector('[data-hero-status]');
 
   const total = shows.length;
@@ -111,16 +141,17 @@ export function createHeroCarousel(root, shows, { interval = 7000 } = {}) {
     dot.addEventListener('click', () => userGoTo(i));
     return dot;
   });
+  const cards = shows.map(createTrioCard);
 
   let index = 0;
   let playing = !reducedMotion.matches;
-  let hoverPaused = false;
+  let focusPaused = false; // foco de teclado dentro del hero
   let offscreen = false;
   let timer = null;
+  let remaining = interval; // tiempo que le queda a la serie actual
+  let startedAt = 0;
   let changeToken = 0;
 
-  root.style.setProperty('--hero-interval', `${interval}ms`);
-  totalEl.textContent = pad(total);
   dotsEl.replaceChildren(...dots);
 
   const firstImage = slides[0].querySelector('.hero__image');
@@ -131,28 +162,112 @@ export function createHeroCarousel(root, shows, { interval = 7000 } = {}) {
   });
   slidesEl.replaceChildren(...slides);
   controls.hidden = total < 2;
+  if (total > 1) trio.replaceChildren(...cards);
 
-  const canPlay = () => playing && !hoverPaused && !offscreen && !document.hidden && total > 1;
-
-  function syncToggle() {
-    toggle.setAttribute('aria-label', playing ? 'Pausar el carrusel' : 'Reproducir el carrusel');
-    toggle.querySelector('use')?.setAttribute('href', `${SPRITE_URL}#icon-${playing ? 'pause' : 'play'}`);
+  // Los pósteres no pisan nunca el texto (que no se mueve): miden lo que quede entre el texto más
+  // ancho de las diapositivas y el margen derecho, hasta 17rem. Si no llegan al mínimo, no se muestran
+  // y el progreso vuelve a los indicadores (.has-trio)
+  const aside = trio.parentElement;
+  function fitTrio() {
+    let size = 0;
+    if (total > 1 && trioQuery.matches) {
+      let textRight = 0;
+      const range = document.createRange();
+      slides.forEach((slide) => {
+        slide.querySelectorAll('.hero__eyebrow, .hero__title, .meta-list, .hero__description').forEach((element) => {
+          range.selectNodeContents(element);
+          for (const rect of range.getClientRects()) textRight = Math.max(textRight, rect.right);
+        });
+      });
+      const gap = cssLength(aside, '--trio-gap');
+      size = Math.floor(Math.min(TRIO_MAX_CARD, (aside.getBoundingClientRect().right - textRight - TRIO_TEXT_GAP - gap * 2) / 3));
+    }
+    const visible = size >= TRIO_MIN_CARD;
+    root.classList.toggle('has-trio', visible);
+    if (!visible) return;
+    root.style.setProperty('--trio-card', `${size}px`);
+    trio.querySelectorAll('img').forEach((img) => {
+      if (img.srcset) img.sizes = `${size}px`;
+      img.loading = 'eager'; // también los ocultos a los lados, para que entren ya cargados
+    });
   }
 
-  // Reinicia el temporizador y la barra de progreso del indicador activo
-  function schedule() {
+  let fitFrame = 0;
+  const requestFit = () => {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(fitTrio);
+  };
+  fitTrio();
+  document.fonts?.ready.then(fitTrio);
+  window.addEventListener('resize', requestFit);
+  trioQuery.addEventListener('change', fitTrio);
+
+  const canPlay = () => playing && !focusPaused && !offscreen && !document.hidden && total > 1;
+
+  // Posición de cada póster respecto a la serie actual: -1 anterior, 0 actual, 1 siguiente. El resto
+  // queda oculto a un lado (-2 o 2), el de salida según el sentido del cambio. Con dos series solo
+  // se ven la actual y la siguiente
+  function positionOf(i, direction) {
+    const offset = (i - index + total) % total;
+    if (offset === 0 || offset === 1) return offset;
+    if (offset === total - 1) return -1;
+    return direction > 0 ? -2 : 2;
+  }
+
+  // Mueve los pósteres a su nueva posición. Los que aparecen (estaban ocultos o dan la vuelta)
+  // parten de fuera, por su lado, sin transición; después todos se animan a la vez
+  function placeTrio(direction, { instant = false } = {}) {
+    const moves = cards.map((card, i) => ({ card, from: Number(card.dataset.pos), to: positionOf(i, direction) }));
+    moves.forEach(({ card, from, to }) => {
+      const appears = Math.abs(to) <= 1 && (Math.abs(from) > 1 || (to - from) * direction > 0);
+      if (instant) {
+        card.classList.add('is-instant');
+        card.dataset.pos = String(to);
+      } else if (appears) {
+        card.classList.add('is-instant');
+        card.dataset.pos = String(to === 0 ? 2 * direction : 2 * Math.sign(to));
+      }
+    });
+    void trio.offsetWidth; // fija la posición de partida antes de animar
+    moves.forEach(({ card, to }) => {
+      card.classList.remove('is-instant');
+      card.dataset.pos = String(to);
+    });
+  }
+
+  // Serie nueva: el temporizador empieza de cero
+  function restart() {
     clearTimeout(timer);
-    root.classList.remove('is-playing');
-    if (!canPlay()) return;
-    void root.offsetWidth;
-    root.classList.add('is-playing');
-    timer = setTimeout(() => goTo(index + 1), interval);
+    timer = null;
+    remaining = interval;
+    sync();
+  }
+
+  // Pausa o reanuda sin reiniciar: en pausa (foco de teclado en el hero, pestaña oculta, hero fuera
+  // de vista) el temporizador guarda lo que le falta y, al reanudar, sigue desde ahí
+  function sync() {
+    if (canPlay()) {
+      if (timer) return;
+      startedAt = performance.now();
+      timer = setTimeout(() => {
+        timer = null;
+        goTo(index + 1);
+      }, remaining);
+    } else if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      remaining = Math.max(remaining - (performance.now() - startedAt), 0);
+    }
   }
 
   async function goTo(target, { announce = false } = {}) {
     const next = (target + total) % total;
+    const step = (next - index + total) % total;
+    const direction = step > total / 2 ? -1 : 1; // por el camino más corto
     const token = ++changeToken;
     clearTimeout(timer);
+    timer = null;
+    remaining = interval; // si se reanuda mientras carga, no debe saltar a la siguiente enseguida
     await loadSlideImages(slides[next]);
     if (token !== changeToken) return; // hubo otro cambio mientras cargaba
 
@@ -163,65 +278,98 @@ export function createHeroCarousel(root, shows, { interval = 7000 } = {}) {
     index = next;
 
     dots.forEach((dot, i) => dot.setAttribute('aria-current', String(i === index)));
-    currentEl.textContent = pad(index + 1);
+    if (total > 1) placeTrio(direction);
     if (announce) status.textContent = `${index + 1} de ${total}: ${shows[index].name}`;
 
     loadSlideImages(slides[(index + 1) % total]);
-    schedule();
+    restart();
   }
 
-  // La interacción con los controles detiene la reproducción automática
+  // Sin botón de pausa, cambiar de serie a mano no detiene el autoplay: sigue desde la nueva serie
+  // (con teclado, queda en pausa mientras el foco esté en el hero)
   function userGoTo(target) {
-    playing = false;
-    syncToggle();
     goTo(target, { announce: true });
   }
 
   root.querySelector('[data-hero-prev]').addEventListener('click', () => userGoTo(index - 1));
   root.querySelector('[data-hero-next]').addEventListener('click', () => userGoTo(index + 1));
-  toggle.addEventListener('click', () => {
-    playing = !playing;
-    syncToggle();
-    schedule();
-  });
+  // Con el ratón, el póster central abre la ficha (es un enlace) y los de los lados ponen su serie
+  // en el centro (con teclado y lectores de pantalla, las flechas y los indicadores hacen lo mismo)
+  cards.forEach((card) => card.addEventListener('click', (event) => {
+    const position = Number(card.dataset.pos);
+    if (position !== -1 && position !== 1) return;
+    event.preventDefault();
+    userGoTo(index + position);
+  }));
 
-  // Pausa temporal mientras el foco o el puntero están en los controles
-  root.addEventListener('focusin', () => { hoverPaused = true; schedule(); });
-  root.addEventListener('focusout', (event) => {
-    if (!root.contains(event.relatedTarget)) { hoverPaused = false; schedule(); }
+  // Con ratón y sin pósteres, los controles se ocultan si el ratón se queda quieto y vuelven al
+  // moverlo (.is-idle); con pósteres, las flechas solo se ven con el ratón encima (CSS). En pantallas
+  // táctiles siempre están a la vista
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  let idleTimer = 0;
+  let lastWake = 0;
+  const wake = () => {
+    const now = performance.now();
+    if (!root.classList.contains('is-idle') && now - lastWake < 200) return;
+    lastWake = now;
+    root.classList.remove('is-idle');
+    clearTimeout(idleTimer);
+    if (finePointer.matches) idleTimer = setTimeout(() => root.classList.add('is-idle'), IDLE_MS);
+  };
+  document.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse') wake();
+  }, { passive: true });
+  wake();
+
+  // El ratón no pausa el carrusel (ni encima de los pósteres ni al hacer clic en las flechas). Solo
+  // se pausa mientras el foco de teclado está dentro del hero, para poder leer o usar los controles
+  root.addEventListener('focusin', (event) => {
+    if (!event.target.matches(':focus-visible')) return;
+    focusPaused = true;
+    sync();
   });
-  controls.addEventListener('pointerenter', () => { hoverPaused = true; schedule(); });
-  controls.addEventListener('pointerleave', () => { hoverPaused = root.contains(document.activeElement); schedule(); });
-  document.addEventListener('visibilitychange', schedule);
+  root.addEventListener('focusout', (event) => {
+    if (root.contains(event.relatedTarget)) return;
+    focusPaused = false;
+    sync();
+  });
+  document.addEventListener('visibilitychange', sync);
   reducedMotion.addEventListener('change', (event) => {
-    if (event.matches) { playing = false; syncToggle(); schedule(); }
+    playing = !event.matches;
+    restart();
   });
 
   dots[0].setAttribute('aria-current', 'true');
-  syncToggle();
+  if (total > 1) placeTrio(1, { instant: true });
   loadSlideImages(slides[0]).then(() => {
     if (total > 1) loadSlideImages(slides[1]);
-    schedule();
+    restart();
   });
 
   return {
     setOffscreen(value) {
       offscreen = value;
-      schedule();
+      sync();
     },
   };
 }
 
 // Transición vinculada al scroll: el hero se desvanece mientras el contenido sube sobre él.
 // El progreso se escribe solo en el hero (y la opacidad del borde), nunca en todo el documento.
-export function initHeroScroll(hero, { edge, onPastChange } = {}) {
+export function initHeroScroll(hero, { edge, content, onPastChange } = {}) {
   let ticking = false;
   let past = false;
   let lastValue = '';
+  let overlap = 0;
+
+  // Desde lg el contenido asoma sobre el final del hero (margen negativo), así que lo tapa antes
+  const measure = () => {
+    overlap = content ? Math.max(-parseFloat(getComputedStyle(content).marginTop) || 0, 0) : 0;
+  };
 
   const update = () => {
     ticking = false;
-    const distance = Math.max(hero.offsetHeight * 0.9, 1);
+    const distance = Math.max((hero.offsetHeight - overlap) * 0.9, 1);
     const progress = Math.min(Math.max(window.scrollY / distance, 0), 1);
     const value = progress.toFixed(3);
     if (value === lastValue) return;
@@ -244,6 +392,10 @@ export function initHeroScroll(hero, { edge, onPastChange } = {}) {
   };
 
   window.addEventListener('scroll', request, { passive: true });
-  window.addEventListener('resize', request);
+  window.addEventListener('resize', () => {
+    measure();
+    request();
+  });
+  measure();
   update();
 }

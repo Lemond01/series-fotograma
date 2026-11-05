@@ -44,6 +44,7 @@ async function loadHero() {
   const carousel = createHeroCarousel(hero, shows);
   initHeroScroll(hero, {
     edge: document.querySelector('[data-hero-edge]'),
+    content: document.querySelector('.home-content'),
     onPastChange: (past) => carousel.setOffscreen(past),
   });
 }
@@ -476,32 +477,34 @@ async function loadSchedule() {
   const board = document.querySelector('[data-schedule]');
   if (!board) return;
 
+  // El aviso solo aparece si no hay estrenos o falla la carga (mientras carga, los skeletons)
+  const notice = board.querySelector('[data-schedule-notice]');
   const noticeText = board.querySelector('[data-schedule-notice-text]');
   const list = board.querySelector('[data-schedule-list]');
+  const showNotice = (text) => {
+    noticeText.textContent = text;
+    notice.hidden = false;
+    list.hidden = true;
+  };
 
   try {
     const episodes = await getWebSchedule();
     const groups = groupByShow(episodes).slice(0, SCHEDULE_LIMIT);
 
     if (groups.length === 0) {
-      noticeText.textContent = 'TVmaze no tiene estrenos web registrados para hoy.';
-      list.hidden = true;
+      showNotice('TVmaze no tiene estrenos web registrados para hoy.');
       return;
     }
 
-    noticeText.textContent = `${groups.length} de ${countShows(episodes)} series con estrenos hoy, ordenadas por hora de emisión.`;
     list.replaceChildren(...groups.map(createScheduleItem));
   } catch (error) {
     console.error('[Inicio] Error al cargar la programación web:', error);
     const { title, text } = getErrorMessage(error);
-    noticeText.textContent = `${title}. ${text}`;
-    list.hidden = true;
+    showNotice(`${title}. ${text}`);
   } finally {
     board.removeAttribute('aria-busy');
   }
 }
-
-const countShows = (episodes) => new Set(episodes.map((episode) => episode.show.id)).size;
 
 function groupByShow(episodes) {
   const groups = new Map();

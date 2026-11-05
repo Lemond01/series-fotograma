@@ -1,3 +1,4 @@
+@use "sass:list";
 @use "variables" as *;
 
 .icon {
@@ -304,6 +305,17 @@
   }
 }
 
+// Degradados suaves del color de fondo (ver fade-stops en _variables)
+@function bg-fade($from, $to, $alpha-from, $alpha-to) {
+  @return fade-stops($color-bg, $from, $to, $alpha-from, $alpha-to);
+}
+
+// Hueco bajo el texto del hero y cuánto asoma sobre él el contenido de Inicio (desde lg)
+$hero-content-bottom: 8.5rem;
+$hero-content-bottom-md: 9.5rem;
+// Lo que asoma: el padding superior de la primera sección y media línea de su etiqueta (caps, 1.4)
+$hero-peek: $space-6 + $space-2 + $fs-xs * 1.4 * 0.5;
+
 // Hero de Inicio: carrusel con crossfade; --hero-progress (0 a 1) lo actualiza hero.js con el scroll
 .hero {
   --hero-progress: 0;
@@ -369,9 +381,18 @@
       content: "";
       position: absolute;
       inset: 0;
+      // De abajo arriba: fondo sólido que se abre hacia la imagen y un ligero oscurecido arriba (barra);
+      // de izquierda a derecha, oscurecido bajo el texto. Todo con degradados suaves (bg-fade)
       background:
-        linear-gradient(to top, $color-bg 0%, rgba($color-bg, 0.86) 22%, rgba($color-bg, 0.2) 58%, rgba($color-bg, 0.5) 100%),
-        linear-gradient(to right, rgba($color-bg, 0.88) 0%, rgba($color-bg, 0.4) 42%, rgba($color-bg, 0) 72%);
+        linear-gradient(to top, list.join(bg-fade(0%, 62%, 1, 0.2), bg-fade(62%, 100%, 0.2, 0.5))),
+        linear-gradient(to right, bg-fade(0%, 78%, 0.88, 0));
+
+      // Desde lg, la franja que tapa el contenido que asoma ya es del color de fondo: no se nota el borde
+      @include mq(lg) {
+        background:
+          linear-gradient(to top, list.join(bg-fade($hero-peek, 64%, 1, 0.2), bg-fade(64%, 100%, 0.2, 0.5))),
+          linear-gradient(to right, bg-fade(0%, 78%, 0.88, 0));
+      }
     }
   }
 
@@ -410,14 +431,19 @@
     }
   }
 
+  // Con los tres pósteres a la derecha, el póster suelto sobra
+  &.has-trio &__poster {
+    display: none;
+  }
+
   &__content {
     position: relative;
-    padding-bottom: 8.5rem;
+    padding-bottom: $hero-content-bottom;
     opacity: calc(1 - var(--hero-progress) * 1.8);
     transform: translateY(calc(var(--hero-progress) * -6vh));
 
     @include mq(md) {
-      padding-bottom: 9.5rem;
+      padding-bottom: $hero-content-bottom-md;
     }
   }
 
@@ -434,6 +460,13 @@
     line-height: 0.92;
   }
 
+  // El título lleva a la ficha (sin botón «Ver ficha»): con teclado y en móvil es el acceso.
+  // Sin subrayado ni cambio al pasar el ratón
+  &__title-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
   &__description {
     display: -webkit-box;
     max-width: 46ch;
@@ -447,13 +480,115 @@
     @include mq(md) {
       font-size: $fs-md;
     }
+
+    // Más ancha en pantallas grandes, sin llegar a los pósteres (que se ajustan al texto más ancho)
+    @include mq(lg) {
+      max-width: 68ch;
+    }
   }
 
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-3;
-    margin-top: $space-6;
+  // Desde lg, columna derecha, con su parte de abajo a la altura de la última línea de la descripción:
+  // los tres pósteres (con las flechas encima) o, si no caben, los controles. Por debajo de lg no hay
+  // pósteres y los controles siguen abajo, a lo ancho
+  &__aside {
+    display: contents;
+
+    @include mq(lg) {
+      --trio-gap: #{$space-5};
+      position: absolute;
+      right: $gutter;
+      bottom: $hero-content-bottom-md;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: $space-5;
+      opacity: calc(1 - var(--hero-progress) * 1.8);
+      transform: translateY(calc(var(--hero-progress) * -6vh));
+    }
+  }
+
+  // Anterior, actual y siguiente. El de en medio es la serie que se ve; los de los lados se
+  // desvanecen hacia fuera. hero.js añade .has-trio y el tamaño (--trio-card: hasta 17rem, como
+  // el póster de la ficha) solo si caben sin pisar el texto
+  &__trio {
+    display: none;
+  }
+
+  &.has-trio &__aside {
+    @include mq(lg) {
+      width: calc(var(--trio-card) * 3 + var(--trio-gap) * 2);
+    }
+  }
+
+  &.has-trio &__trio {
+    @include mq(lg) {
+      position: relative;
+      display: block;
+      // Póster (2:3)
+      height: calc(var(--trio-card) * 1.5);
+      // Los de los lados se desvanecen hacia fuera desde su mitad. La máscara va fija en la columna
+      // (no en cada póster): al moverse, se funden al entrar y salir sin dejar ver bordes. Además
+      // recorta lo que queda fuera de la columna
+      mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 calc(var(--trio-card) / 2),
+        #000 calc(100% - var(--trio-card) / 2),
+        transparent 100%
+      );
+    }
+  }
+
+  &__trio-card {
+    position: absolute;
+    top: 0;
+    left: calc(var(--trio-card) + var(--trio-gap));
+    width: var(--trio-card);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(calc(var(--trio-pos, 0) * (100% + var(--trio-gap))));
+    transition:
+      transform $duration-slow $ease-film,
+      opacity $duration-slow $ease-film;
+
+    &[data-pos="-2"] {
+      --trio-pos: -2;
+    }
+
+    &[data-pos="-1"] {
+      --trio-pos: -1;
+      opacity: 0.6;
+    }
+
+    &[data-pos="0"] {
+      --trio-pos: 0;
+      opacity: 1;
+    }
+
+    &[data-pos="1"] {
+      --trio-pos: 1;
+      opacity: 0.6;
+    }
+
+    &[data-pos="2"] {
+      --trio-pos: 2;
+    }
+
+    // Con el ratón: el central abre la ficha de la serie; los de los lados la ponen en el centro
+    &[data-pos="-1"],
+    &[data-pos="0"],
+    &[data-pos="1"] {
+      pointer-events: auto;
+    }
+
+    &.is-instant {
+      transition: none;
+    }
+  }
+
+  &__trio-poster {
+    aspect-ratio: 2 / 3;
+    border-radius: $radius-xs;
   }
 
   &__controls {
@@ -471,23 +606,22 @@
     @include mq(md) {
       bottom: $space-7;
     }
-  }
 
-  &__counter {
-    color: $color-title;
-    font-family: $font-display;
-    font-weight: $fw-medium;
-    font-size: $fs-md;
-    letter-spacing: 0.04em;
-    line-height: 1;
-  }
-
-  &__counter-total {
-    color: $color-text-subtle;
+    // Dentro de la columna derecha (la columna entera ya se desvanece con el scroll)
+    @include mq(lg) {
+      position: static;
+      flex-wrap: nowrap;
+      padding-inline: 0;
+      opacity: 1;
+    }
   }
 
   &__dots {
     display: flex;
+  }
+
+  &.has-trio &__dots {
+    display: none;
   }
 
   &__dot {
@@ -526,15 +660,71 @@
     }
   }
 
-  // Barra de progreso del autoplay en el indicador activo
-  &.is-playing &__dot[aria-current="true"]::after {
-    animation: hero-progress var(--hero-interval, 7s) linear both;
-  }
-
   &__buttons {
     display: flex;
     gap: $space-1;
     margin-left: auto;
+  }
+
+  // Sin pósteres: con el ratón quieto (.is-idle, desde hero.js) se ocultan los controles; con el
+  // puntero o el foco encima siguen a la vista
+  &__dots,
+  &__button {
+    transition: opacity $duration-base ease, border-color $duration-fast ease;
+  }
+
+  &.is-idle:not(.has-trio) &__controls:not(:hover, :focus-within) &__dots,
+  &.is-idle:not(.has-trio) &__controls:not(:hover, :focus-within) &__button {
+    opacity: 0;
+  }
+
+  // Con pósteres: cada flecha va en el costado de su lado, sobre el borde exterior del póster
+  // desvanecido y centrada en altura. Los controles cubren la columna sin capturar el puntero; solo
+  // las flechas lo reciben
+  &.has-trio &__controls {
+    @include mq(lg) {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+  }
+
+  &.has-trio &__buttons {
+    @include mq(lg) {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+    }
+  }
+
+  &.has-trio &__button {
+    @include mq(lg) {
+      position: absolute;
+      top: 50%;
+      background-color: rgba($color-bg, 0.6);
+      pointer-events: auto;
+      transform: translateY(-50%);
+    }
+  }
+
+  &.has-trio &__button--prev {
+    @include mq(lg) {
+      left: 0;
+    }
+  }
+
+  &.has-trio &__button--next {
+    @include mq(lg) {
+      right: 0;
+    }
+  }
+
+  // ...y solo se ven con el ratón sobre la columna de pósteres o con el foco en ellas (en pantallas
+  // táctiles, siempre)
+  @media (hover: hover) {
+    &.has-trio &__aside:not(:hover) &__controls:not(:focus-within) &__button {
+      opacity: 0;
+    }
   }
 
   &__button {
@@ -546,7 +736,6 @@
     border-radius: $radius-xs;
     background-color: rgba($color-bg, 0.35);
     color: $color-title;
-    transition: border-color $duration-fast ease;
 
     &:hover {
       border-color: rgba($ivory-50, 0.6);
@@ -561,8 +750,13 @@
 
   @media (prefers-reduced-motion: reduce) {
     &__media,
-    &__content {
+    &__content,
+    &__aside {
       transform: none;
+    }
+
+    &__trio-card {
+      transition: none;
     }
   }
 }
@@ -577,21 +771,16 @@
   }
 }
 
-@keyframes hero-progress {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
 // Contenido que se desliza sobre el hero
 .home-content {
   position: relative;
   z-index: 1;
   background-color: $color-bg;
+
+  // Desde lg asoma sobre el final del hero (la cabecera de Estrenos), para que se vea que hay más abajo
+  @include mq(lg) {
+    margin-top: -$hero-peek;
+  }
 
   // Borde suave que aparece mientras el contenido sube sobre el hero (opacidad desde hero.js)
   &__edge {
@@ -600,7 +789,7 @@
     bottom: 100%;
     left: 0;
     height: 28vh;
-    background: linear-gradient(to bottom, rgba($color-bg, 0), $color-bg);
+    background: linear-gradient(to bottom, bg-fade(0%, 100%, 0, 1));
     opacity: 0;
     pointer-events: none;
     will-change: opacity;
@@ -895,10 +1084,7 @@ $rail-card-shares: (base: 42, sm: 30, md: 21, lg: 15.5, xxl: 13.5, xxxl: 11.5);
 
 // Programación web
 .schedule {
-  &__board {
-    border-top: 1px solid $color-border-strong;
-  }
-
+  // Aviso solo si no hay estrenos o falla la carga
   &__notice {
     display: flex;
     align-items: center;

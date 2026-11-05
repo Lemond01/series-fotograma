@@ -74,13 +74,14 @@
           </div>
         </div>
       </div>
-      <div class="container hero__controls" data-hero-controls hidden>
-        <p class="hero__counter" aria-hidden="true"><span data-hero-current>01</span> <span class="hero__counter-total">/ <span data-hero-total>01</span></span></p>
-        <div class="hero__dots" data-hero-dots></div>
-        <div class="hero__buttons">
-          <button class="hero__button" type="button" aria-label="Serie anterior" data-hero-prev><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
-          <button class="hero__button" type="button" aria-label="Pausar el carrusel" data-hero-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-pause"></use></svg></button>
-          <button class="hero__button" type="button" aria-label="Serie siguiente" data-hero-next><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+      <div class="hero__aside">
+        <div class="hero__trio" aria-hidden="true" data-hero-trio></div>
+        <div class="container hero__controls" data-hero-controls hidden>
+          <div class="hero__dots" data-hero-dots></div>
+          <div class="hero__buttons">
+            <button class="hero__button hero__button--prev" type="button" aria-label="Serie anterior" data-hero-prev><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+            <button class="hero__button hero__button--next" type="button" aria-label="Serie siguiente" data-hero-next><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+          </div>
         </div>
       </div>
       <p class="u-visually-hidden" aria-live="polite" data-hero-status></p>
@@ -99,7 +100,7 @@
             </div>
           </header>
           <div class="schedule__board" aria-busy="true" data-schedule>
-            <p class="schedule__notice" data-schedule-notice><span data-schedule-notice-text>Cargando la programación de hoy…</span></p>
+            <p class="schedule__notice" data-schedule-notice hidden><span data-schedule-notice-text></span></p>
             <ul class="schedule__list" data-schedule-list>
             <li class="schedule__item" aria-hidden="true">
               <span class="skeleton skeleton--time"></span>

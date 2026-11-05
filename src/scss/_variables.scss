@@ -1,4 +1,6 @@
+@use "sass:list";
 @use "sass:map";
+@use "sass:math";
 
 // Paleta
 $carbon-950: #07080b;
@@ -204,6 +206,26 @@ $breakpoints: (
 }
 
 // Texto de apoyo en mayúsculas espaciadas
+// Paradas de un degradado de $color con la opacidad en curva (entra y sale despacio) en vez de en
+// recta: con mucho brillo, los cambios bruscos de pendiente de un degradado lineal se ven como bandas
+// y se nota dónde empieza o acaba
+@function fade-stops($color, $from, $to, $alpha-from, $alpha-to, $steps: 12) {
+  $stops: ();
+  @for $i from 0 through $steps {
+    $t: math.div($i, $steps);
+    $eased: math.div(1 - math.cos(math.$pi * $t), 2);
+    $alpha: $alpha-from + ($alpha-to - $alpha-from) * $eased;
+    $position: $from;
+    @if $i == $steps {
+      $position: $to;
+    } @else if $i > 0 {
+      $position: calc(#{$from} * #{1 - $t} + #{$to} * #{$t});
+    }
+    $stops: list.append($stops, rgba($color, $alpha) $position, $separator: comma);
+  }
+  @return $stops;
+}
+
 @mixin caps($size: $fs-xs) {
   font-family: $font-display;
   font-size: $size;
