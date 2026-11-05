@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Lemond01/series-atlas"><strong>Ver el repositorio</strong></a>
+  <a href="https://lemond01.github.io/series-fotograma/"><strong>Visitar Fotograma</strong></a>
   &nbsp;·&nbsp;
-  Demo: próximamente
+  <a href="https://github.com/Lemond01/series-fotograma">Ver el repositorio</a>
 </p>
 
 ---

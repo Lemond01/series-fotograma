@@ -1,6 +1,7 @@
 import { isFavorite, toggleFavorite, getFavoritesCount, onFavoritesChange } from './favorites.js';
 import { BRAND } from './brand.js';
 import { initScrollbars } from './scrollbars.js';
+import { initQuietLinks } from './links.js';
 
 const SPRITE_URL = 'assets/icons/sprite.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -268,6 +269,8 @@ export function initPage() {
   initSiteHeader();
   initImageFallbacks();
   initFavoriteButtons();
+  // Al final: los enlaces de secciones del menú leen su destino (href) al iniciarse
+  initQuietLinks();
 }
 
 // Favoritos

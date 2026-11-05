@@ -112,6 +112,13 @@ a {
   text-underline-offset: 0.2em;
 }
 
+// Enlaces sin href (links.js los gestiona para que el navegador no muestre la dirección): mismo
+// cursor y subrayado por defecto que un enlace normal, sin especificidad (como los del navegador)
+:where(a[data-href]) {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 [hidden] {
   display: none !important;
 }
