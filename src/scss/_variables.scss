@@ -147,6 +147,62 @@ $breakpoints: (
   }
 }
 
+// Pestañas (temporadas de la ficha, géneros de Inicio): fila deslizable en móvil y columna desde md
+@mixin tab-list {
+  display: flex;
+  gap: $space-2;
+  margin-inline: $gutter-negative;
+  padding: 2px $gutter;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  @include quiet-scrollbar;
+
+  @media (min-width: map.get($breakpoints, "md")) {
+    flex-direction: column;
+    gap: $space-1;
+    margin-inline: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+// Pestaña: recuadro neutro al pasar el ratón; la elegida, recuadro violeta (como en las listas de Explorar)
+@mixin tab {
+  display: grid;
+  flex: none;
+  gap: 0.125rem;
+  padding: $space-3 $space-4;
+  border: 1px solid $color-border-strong;
+  border-radius: $radius-xs;
+  background: transparent;
+  color: $color-text-soft;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background-color $duration-fast ease,
+    border-color $duration-fast ease,
+    color $duration-fast ease;
+
+  @media (min-width: map.get($breakpoints, "md")) {
+    border-color: transparent;
+  }
+
+  &:hover {
+    background-color: $color-surface-hover;
+    color: $color-title;
+  }
+
+  &[aria-selected="true"] {
+    border-color: transparent;
+    background-color: $color-accent-deep;
+    color: $color-title;
+  }
+
+  &[aria-selected="true"]:hover {
+    background-color: $color-accent-strong;
+  }
+}
+
 // Texto de apoyo en mayúsculas espaciadas
 @mixin caps($size: $fs-xs) {
   font-family: $font-display;

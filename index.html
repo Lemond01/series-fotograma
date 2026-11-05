@@ -93,9 +93,9 @@
         <div class="container">
           <header class="section__header" id="estrenos">
             <div>
-              <p class="section__eyebrow">Hoy en plataformas web</p>
-              <h2 class="section__title" id="schedule-title">Programación web</h2>
-              <p class="section__description">Series con episodios que se estrenan hoy, según TVmaze. Horas en tu zona horaria.</p>
+              <p class="section__eyebrow">Estrenos</p>
+              <h2 class="section__title" id="schedule-title">No te pierdas lo más nuevo</h2>
+              <p class="section__description">Episodios que llegan hoy a las plataformas digitales. Consulta los horarios de estreno en tu zona.</p>
             </div>
           </header>
           <div class="schedule__board" aria-busy="true" data-schedule>
@@ -175,8 +175,8 @@
           <header class="section__header" id="seleccion">
             <div>
               <p class="section__eyebrow">Nuestra selección</p>
-              <h2 class="section__title" id="editorial-title">Para empezar</h2>
-              <p class="section__description">Seis series elegidas a mano para entrar en el archivo. Es una selección propia, no un ranking.</p>
+              <h2 class="section__title" id="editorial-title">Historias para descubrir</h2>
+              <p class="section__description">Seis historias, seis razones para quedarte. Descubre nuestra selección y encuentra tu próxima serie favorita.</p>
             </div>
           </header>
           <div data-editorial-status>
@@ -228,69 +228,68 @@
         <div class="container">
           <header class="section__header" id="generos">
             <div>
-              <p class="section__eyebrow">Géneros</p>
-              <h2 class="section__title" id="genres-title">Por dónde mirar</h2>
+              <p class="section__eyebrow">Explora por género</p>
+              <h2 class="section__title" id="genres-title">¿Qué historia buscas?</h2>
+              <p class="section__description">Desde el drama hasta la ciencia ficción. Encuentra historias según lo que te apetece ver.</p>
             </div>
             <a class="section__link" href="explorar.html">Todo el catálogo <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></a>
           </header>
-          <ol class="genre-index">
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Drama">
-                <span class="genre-index__number">01</span>
-                <span class="genre-index__name">Drama</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Comedy">
-                <span class="genre-index__number">02</span>
-                <span class="genre-index__name">Comedia</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Science-Fiction">
-                <span class="genre-index__number">03</span>
-                <span class="genre-index__name">Ciencia ficción</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Crime">
-                <span class="genre-index__number">04</span>
-                <span class="genre-index__name">Crimen</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Horror">
-                <span class="genre-index__number">05</span>
-                <span class="genre-index__name">Terror</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Fantasy">
-                <span class="genre-index__number">06</span>
-                <span class="genre-index__name">Fantasía</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Thriller">
-                <span class="genre-index__number">07</span>
-                <span class="genre-index__name">Thriller</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-            <li>
-              <a class="genre-index__link" href="explorar.html?genre=Romance">
-                <span class="genre-index__number">08</span>
-                <span class="genre-index__name">Romance</span>
-                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-              </a>
-            </li>
-          </ol>
+          <div class="genre-picker" data-genre-picker>
+            <nav class="genre-picker__tabs" aria-label="Géneros" data-genre-tabs>
+              <a class="genre-picker__tab" href="explorar.html?genre=Drama" data-genre="Drama">Drama</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Comedy" data-genre="Comedy">Comedia</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Science-Fiction" data-genre="Science-Fiction">Ciencia ficción</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Crime" data-genre="Crime">Crimen</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Horror" data-genre="Horror">Terror</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Fantasy" data-genre="Fantasy">Fantasía</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Thriller" data-genre="Thriller">Thriller</a>
+              <a class="genre-picker__tab" href="explorar.html?genre=Romance" data-genre="Romance">Romance</a>
+            </nav>
+            <div class="genre-picker__panel" id="genre-panel" data-genre-panel>
+              <div data-genre-status>
+                <div class="status-message status-message--error" data-status="error" hidden>
+                  <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+                  <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
+                  <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
+                  <div class="status-message__actions">
+                    <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+                  </div>
+                </div>
+              </div>
+              <ul class="genre-picker__grid" aria-busy="true" data-genre-grid>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              <li class="series-card series-card--skeleton" aria-hidden="true">
+                <span class="series-card__poster skeleton skeleton--poster"></span>
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -298,9 +297,9 @@
         <div class="container">
           <header class="section__header" id="populares">
             <div>
-              <p class="section__eyebrow">Del archivo</p>
-              <h2 class="section__title" id="discover-title">Descubre más series</h2>
-              <p class="section__description">Una muestra del índice de TVmaze: series con una puntuación de 8 o más.</p>
+              <p class="section__eyebrow">Populares en <span class="u-keep-case">TVmaze</span></p>
+              <h2 class="section__title" id="discover-title">Historias que destacan</h2>
+              <p class="section__description">Una selección de series con puntuaciones de 8 o más en TVmaze. Descubre títulos que han recibido buenas valoraciones.</p>
             </div>
             <div class="section__aside">
               <div class="rail__controls">

@@ -228,3 +228,8 @@ a {
   white-space: nowrap;
   border: 0;
 }
+
+// Conserva mayúsculas y minúsculas dentro de textos en versalitas (p. ej., «TVmaze» en una etiqueta)
+.u-keep-case {
+  text-transform: none;
+}

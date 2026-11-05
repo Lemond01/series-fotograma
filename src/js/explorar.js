@@ -1,7 +1,7 @@
 import { searchShows, getShowIndex, getShowDetails } from './api.js';
 import {
   initPage, createSeriesCard, createSkeletonCard, showStatus, fillErrorMessage,
-  debounce, translateStatus, translateGenre, KNOWN_GENRES,
+  debounce, translateStatus, translateGenre, genreTitle, KNOWN_GENRES,
 } from './ui.js';
 import { getFavoriteIds, removeFavorite, onFavoritesChange } from './favorites.js';
 import { pageTitle as brandTitle } from './brand.js';
@@ -42,12 +42,6 @@ const notice = document.querySelector('[data-results-notice]');
 const noticeText = document.querySelector('[data-results-notice-text]');
 const noticeAction = document.querySelector('[data-results-notice-action]');
 
-// Título de la página según el género (los que en español son adjetivos llevan su forma)
-const GENRE_TITLES = {
-  Adult: 'Series para adultos', Children: 'Series infantiles', Family: 'Series familiares',
-  Legal: 'Series legales', Medical: 'Series médicas', Supernatural: 'Series sobrenaturales',
-  War: 'Series bélicas', Western: 'Series del oeste',
-};
 const DEFAULT_TITLE = 'Todas las series';
 const SORT_VALUES = [...sortSelect.options].map((option) => option.value);
 
@@ -179,7 +173,7 @@ function syncGenreOptions() {
 function exploreHeading() {
   if (currentMode() === 'search') return `Resultados para "${searchQuery}"`;
   if (!filters.genre) return DEFAULT_TITLE;
-  return GENRE_TITLES[filters.genre] ?? `Series de ${translateGenre(filters.genre).toLowerCase()}`;
+  return genreTitle(filters.genre);
 }
 
 function syncHeading() {

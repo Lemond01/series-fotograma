@@ -479,6 +479,14 @@ const DAYS = {
 export const KNOWN_GENRES = Object.keys(GENRES);
 
 export const translateGenre = (genre) => GENRES[genre] ?? genre;
+
+// «Series de drama», «Series de ciencia ficción»… (los géneros que en español son adjetivos llevan su forma)
+const GENRE_TITLES = {
+  Adult: 'Series para adultos', Children: 'Series infantiles', Family: 'Series familiares',
+  Legal: 'Series legales', Medical: 'Series médicas', Supernatural: 'Series sobrenaturales',
+  War: 'Series bélicas', Western: 'Series del oeste',
+};
+export const genreTitle = (genre) => GENRE_TITLES[genre] ?? `Series de ${translateGenre(genre).toLowerCase()}`;
 export const translateStatus = (status) => (status ? STATUSES[status] ?? status : null);
 export const translateLanguage = (language) => (language ? LANGUAGES[language] ?? language : null);
 export const translateDays = (days) => days.map((day) => DAYS[day] ?? day).join(', ');

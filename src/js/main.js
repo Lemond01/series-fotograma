@@ -11,6 +11,7 @@ const HERO_SHOW_IDS = [82, 2993, 335, 5];
 const EDITORIAL_SHOW_IDS = [169, 179, 1825, 32, 1371, 919]; // 919: Attack on Titan (anime)
 const DISCOVER_MIN_RATING = 8;
 const DISCOVER_LIMIT = 14;
+const GENRE_HOVER_DELAY_MS = 120; // evita cambios al cruzar la lista con el ratón
 const SCHEDULE_LIMIT = 8;
 const PREVIEW_SUMMARY_LENGTH = 260;
 const PREVIEW_DELAY_MS = 1000; // tiempo con el ratón sobre un póster antes de mostrar su vista previa
@@ -162,18 +163,21 @@ const loadEditorial = editorialGrid && createLoadableSection({
   render: (shows) => shows.map((show, index) => createEditorialCard(show, index + 1)),
 });
 
-// Descubre más series: muestra del índice de TVmaze (no es un ranking)
+// Populares: series con 8 o más de una muestra del índice de TVmaze (ordenadas por puntuación)
+function pickDiscover(shows) {
+  const shown = new Set([...HERO_SHOW_IDS, ...EDITORIAL_SHOW_IDS]);
+  return shows
+    .filter((show) => show.image && show.rating !== null && show.rating >= DISCOVER_MIN_RATING && !shown.has(show.id))
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, DISCOVER_LIMIT);
+}
+
 const discoverGrid = document.querySelector('[data-discover-grid]');
 const loadDiscover = discoverGrid && createLoadableSection({
   grid: discoverGrid,
   status: document.querySelector('[data-discover-status]'),
   async load() {
-    const shown = new Set([...HERO_SHOW_IDS, ...EDITORIAL_SHOW_IDS]);
-    const shows = (await getShowIndex(0))
-      .filter((show) => show.image && show.rating !== null && show.rating >= DISCOVER_MIN_RATING && !shown.has(show.id))
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, DISCOVER_LIMIT);
-    return { items: shows };
+    return { items: pickDiscover(await getShowIndex(0)) };
   },
   render: (shows) => {
     queueMicrotask(updateRailButtons);
@@ -305,7 +309,169 @@ function initRailWheel(viewport) {
   }, { passive: false });
 }
 
-// Programación web
+// Géneros: pestañas (pasar el ratón, tocar o flechas) con una vista previa de pósteres.
+// Sin JavaScript siguen siendo enlaces a Explorar; con él, un clic sobre el género ya elegido lleva allí.
+const genrePicker = document.querySelector('[data-genre-picker]');
+if (genrePicker) initGenrePicker(genrePicker);
+
+function initGenrePicker(root) {
+  const tablist = root.querySelector('[data-genre-tabs]');
+  const tabs = [...tablist.querySelectorAll('[data-genre]')];
+  const panel = root.querySelector('[data-genre-panel]');
+  const grid = root.querySelector('[data-genre-grid]');
+  const status = root.querySelector('[data-genre-status]');
+  const skeleton = grid.firstElementChild.cloneNode(true);
+  const verticalQuery = window.matchMedia('(min-width: 768px)');
+
+  let shows = null; // series del índice, cuando ya se han cargado
+  let current = 0;
+  let hoverTimer = 0;
+  let shownCount = 0; // pósteres (o skeletons) en la rejilla
+
+  // Los pósteres miden lo mismo que en Populares (lo fija el CSS), así que caben más o menos según
+  // el ancho: se muestra una fila completa; con tres columnas o menos (móvil y tablet), dos filas
+  const posterCount = () => {
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    return columns <= 3 ? columns * 2 : columns;
+  };
+
+  tablist.setAttribute('role', 'tablist');
+  const syncOrientation = () => tablist.setAttribute('aria-orientation', verticalQuery.matches ? 'vertical' : 'horizontal');
+  syncOrientation();
+  verticalQuery.addEventListener('change', syncOrientation);
+  panel.setAttribute('role', 'tabpanel');
+  tabs.forEach((tab, index) => {
+    tab.id = `genre-tab-${index}`;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', panel.id);
+  });
+
+  // Las mejor puntuadas del género con póster, sin repetir las del hero, Nuestra selección ni Populares
+  // (si no llegan, se completa con las que ya aparecen en otras secciones)
+  const pickShows = (genre, count) => {
+    const used = new Set([...HERO_SHOW_IDS, ...EDITORIAL_SHOW_IDS, ...pickDiscover(shows).map((show) => show.id)]);
+    const ranked = shows
+      .filter((show) => show.image && show.genres.includes(genre))
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
+    const fresh = ranked.filter((show) => !used.has(show.id));
+    const rest = ranked.filter((show) => used.has(show.id));
+    return [...fresh, ...rest].slice(0, count);
+  };
+
+  const renderSkeletons = () => {
+    shownCount = posterCount();
+    grid.replaceChildren(...Array.from({ length: shownCount }, () => skeleton.cloneNode(true)));
+  };
+
+  const renderPosters = ({ animate }) => {
+    if (!shows) return;
+    shownCount = posterCount();
+    grid.replaceChildren(...pickShows(tabs[current].dataset.genre, shownCount).map(createSeriesCard));
+    grid.removeAttribute('aria-busy');
+    if (animate && !reducedMotion.matches) {
+      grid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
+    }
+  };
+
+  const select = (index, { focus = false, animate = true } = {}) => {
+    const changed = index !== current;
+    current = index;
+    tabs.forEach((tab, i) => {
+      const selected = i === index;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    panel.setAttribute('aria-labelledby', tabs[index].id);
+    if (focus) {
+      tabs[index].focus();
+      tabs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+    if (changed || animate === false) renderPosters({ animate: changed && animate });
+  };
+
+  // Con el ratón basta con pasar por encima (tras una breve pausa). Solo cuenta si el ratón se mueve
+  // de verdad: con el cursor quieto, el contenido que se desplaza debajo no cambia el género
+  // (ni pisa lo elegido con el teclado)
+  let lastPointer = null;
+  let hoverTarget = null;
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('pointermove', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      const moved = !lastPointer || lastPointer.x !== event.clientX || lastPointer.y !== event.clientY;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      if (!moved || index === current || index === hoverTarget) return;
+      hoverTarget = index;
+      clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(() => {
+        hoverTarget = null;
+        select(index);
+      }, GENRE_HOVER_DELAY_MS);
+    });
+    tab.addEventListener('pointerleave', () => {
+      clearTimeout(hoverTimer);
+      hoverTarget = null;
+    });
+    // Clic o toque: si el género no estaba elegido, lo muestra; si ya lo estaba, abre Explorar
+    tab.addEventListener('click', (event) => {
+      if (tab.getAttribute('aria-selected') === 'true') return;
+      event.preventDefault();
+      clearTimeout(hoverTimer);
+      select(index);
+    });
+  });
+
+  // Teclado: flechas (en ambos sentidos), Inicio y Fin; Enter abre el género en Explorar
+  const STEPS = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+  tablist.addEventListener('keydown', (event) => {
+    let next = null;
+    if (event.key in STEPS) next = (current + STEPS[event.key] + tabs.length) % tabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    if (next === null) return;
+    event.preventDefault();
+    clearTimeout(hoverTimer);
+    hoverTarget = null;
+    select(next, { focus: true });
+  });
+
+  // Si al cambiar el ancho caben otras columnas, se rehace la rejilla (sin animación). Se atiende solo
+  // al ancho, y el cambio se aplica en el siguiente fotograma para no encadenar avisos del observador
+  let lastWidth = 0;
+  let resizeFrame = 0;
+  new ResizeObserver(([entry]) => {
+    const width = entry.contentRect.width;
+    if (width === lastWidth) return;
+    lastWidth = width;
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      if (grid.hidden || posterCount() === shownCount) return;
+      if (shows) renderPosters({ animate: false });
+      else renderSkeletons();
+    });
+  }).observe(root);
+
+  async function load() {
+    grid.hidden = false;
+    grid.setAttribute('aria-busy', 'true');
+    renderSkeletons();
+    showStatus(status, null);
+    try {
+      shows = await getShowIndex(0);
+      renderPosters({ animate: false });
+    } catch (error) {
+      console.error('[Inicio] Error al cargar los géneros:', error);
+      grid.hidden = true;
+      fillErrorMessage(status.querySelector('[data-status="error"]'), error);
+      showStatus(status, 'error');
+    }
+  }
+
+  status.querySelector('[data-retry]')?.addEventListener('click', load);
+  select(0, { animate: false });
+  load();
+}
+
+// Estrenos: programación web de hoy
 async function loadSchedule() {
   const board = document.querySelector('[data-schedule]');
   if (!board) return;
