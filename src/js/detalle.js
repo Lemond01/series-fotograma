@@ -1,11 +1,11 @@
 import { getShowDetails, getShowEpisodes } from './api.js';
+import { pageTitle } from './brand.js';
 import {
-  initPage, createElement, createIcon, setImage, htmlToParagraphs, htmlToText, truncate, bindFavoriteButton,
+  initPage, createElement, createIcon, setImage, htmlToParagraphs, htmlToText, bindFavoriteButton,
   translateGenre, translateStatus, translateLanguage, translateDays,
   formatRating, formatDate, showStatus, fillErrorMessage,
 } from './ui.js';
 
-const EPISODE_SUMMARY_LENGTH = 240;
 const NOT_AVAILABLE = 'No disponible';
 const SHOW_ERROR_MESSAGES = {
   'not-found': ['No encontramos esta serie', 'Es posible que el enlace sea incorrecto o que la serie ya no exista en TVmaze.'],
@@ -44,14 +44,14 @@ function showInvalidId() {
     'El enlace no incluye un identificador de serie válido. Busca una serie en Explorar para ver su ficha.';
   errorElement.querySelector('[data-retry]').hidden = true;
   showStatus(pageStatus, 'error');
-  document.title = 'Serie no encontrada — Series Atlas';
+  document.title = pageTitle('Serie no encontrada');
 }
 
 async function loadPage() {
   showStatus(pageStatus, 'loading');
   content.hidden = true;
 
-  const detailsRequest = getShowDetails(showId);
+  const detailsRequest = getShowDetails(showId, { withImages: true });
   const episodesResult = settle(getShowEpisodes(showId));
 
   let show;
@@ -62,7 +62,7 @@ async function loadPage() {
     fillErrorMessage(pageStatus.querySelector('[data-status="error"]'), error, SHOW_ERROR_MESSAGES);
     pageStatus.querySelector('[data-retry]').hidden = error.type === 'not-found';
     showStatus(pageStatus, 'error');
-    document.title = 'Serie no disponible — Series Atlas';
+    document.title = pageTitle('Serie no disponible');
     return;
   }
 
@@ -91,9 +91,11 @@ async function loadEpisodes(resultPromise) {
 }
 
 function renderShow(show) {
-  document.title = `${show.name} — Series Atlas`;
+  document.title = pageTitle(show.name);
 
-  setImage(field('backdrop'), show.image?.original, '');
+  // Fondo panorámico si existe; si no, el póster desenfocado
+  content.querySelector('.show-hero').classList.toggle('show-hero--poster-backdrop', !show.backdrop);
+  setImage(field('backdrop'), show.backdrop?.url ?? show.image?.original, '');
   setImage(field('image'), show.image?.original, `Póster de ${show.name}`);
   field('name').textContent = show.name;
   bindFavoriteButton(content.querySelector('[data-favorite-toggle]'), show);
@@ -198,37 +200,93 @@ function renderSeasons(episodes) {
   const seasonWord = seasons.length === 1 ? 'temporada' : 'temporadas';
   const episodeWord = episodes.length === 1 ? 'episodio' : 'episodios';
   episodesSummary.textContent =
-    `${seasons.length} ${seasonWord} · ${episodes.length} ${episodeWord}. Despliega una temporada para ver sus episodios.`;
+    `${seasons.length} ${seasonWord} · ${episodes.length} ${episodeWord}. Elige una temporada para ver sus episodios.`;
 
-  const elements = seasons.map(createSeason);
-  seasonsContainer.replaceChildren(...elements);
-
-  if (elements[0]) elements[0].open = true;
+  seasonsContainer.replaceChildren(createSeasonTabs(seasons));
   showStatus(episodesStatus, null);
 }
 
-function createSeason({ season, episodes }) {
-  const details = createElement('details', 'season');
-
-  const summary = createElement('summary', 'season__header');
-  const title = createElement('span', 'season__title', season === 0 ? 'Sin temporada' : `Temporada ${season}`);
+function seasonMeta(episodes) {
   const years = [...new Set(episodes.map((e) => e.airdate?.slice(0, 4)).filter(Boolean))];
   const yearText = years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : years[0];
-  const meta = createElement('span', 'season__meta',
-    [`${episodes.length} ${episodes.length === 1 ? 'episodio' : 'episodios'}`, yearText].filter(Boolean).join(' · '));
-  summary.append(title, meta, createIcon('chevron-down', 'icon season__chevron'));
+  return [`${episodes.length} ${episodes.length === 1 ? 'episodio' : 'episodios'}`, yearText].filter(Boolean).join(' · ');
+}
 
-  const list = createElement('ol', 'episode-list season__episodes');
-  details.append(summary, list);
+// Pestañas de temporada: verticales desde md, fila horizontal en móvil
+const VERTICAL_TABS_QUERY = window.matchMedia('(min-width: 768px)');
+let activeTablist = null;
 
-  // Los episodios se generan al abrir la temporada
-  details.addEventListener('toggle', () => {
-    if (details.open && list.childElementCount === 0) {
-      list.append(...episodes.map(createEpisode));
-    }
+VERTICAL_TABS_QUERY.addEventListener('change', () => {
+  activeTablist?.setAttribute('aria-orientation', VERTICAL_TABS_QUERY.matches ? 'vertical' : 'horizontal');
+});
+
+function createSeasonTabs(seasons) {
+  const wrapper = createElement('div', 'seasons');
+  const tablist = createElement('div', 'seasons__tabs');
+  tablist.setAttribute('role', 'tablist');
+  tablist.setAttribute('aria-label', 'Temporadas');
+  tablist.setAttribute('aria-orientation', VERTICAL_TABS_QUERY.matches ? 'vertical' : 'horizontal');
+  activeTablist = tablist;
+
+  // Un solo panel: muestra los episodios de la temporada elegida
+  const panel = createElement('div', 'seasons__panel');
+  panel.id = 'season-panel';
+  panel.setAttribute('role', 'tabpanel');
+  panel.tabIndex = 0;
+  const list = createElement('ol', 'episode-list');
+  panel.append(list);
+
+  const tabs = seasons.map(({ season, episodes }, index) => {
+    const tab = createElement('button', 'seasons__tab');
+    tab.type = 'button';
+    tab.id = `season-tab-${index}`;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', panel.id);
+    tab.append(
+      createElement('span', 'seasons__tab-title', season === 0 ? 'Sin temporada' : `Temporada ${season}`),
+      createElement('span', 'seasons__tab-meta', seasonMeta(episodes)),
+    );
+    return tab;
   });
 
-  return details;
+  const select = (index, { focus = false, fromUser = false } = {}) => {
+    tabs.forEach((tab, i) => {
+      const selected = i === index;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    });
+    panel.setAttribute('aria-labelledby', tabs[index].id);
+    list.replaceChildren(...seasons[index].episodes.map(createEpisode));
+    if (focus) tabs[index].focus();
+    if (!fromUser) return;
+    // La pestaña elegida queda a la vista dentro de la fila (móvil) o la columna (escritorio)
+    tabs[index].scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    // Si se venía de muy abajo en una temporada larga, la nueva empieza a la vista
+    const headerOffset = document.querySelector('[data-site-header]')?.offsetHeight ?? 0;
+    if (panel.getBoundingClientRect().top < headerOffset) panel.scrollIntoView({ block: 'start' });
+  };
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => select(index, { fromUser: true }));
+  });
+
+  // Teclado: flechas (en ambos sentidos), Inicio y Fin
+  const STEPS = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+  tablist.addEventListener('keydown', (event) => {
+    const current = tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true');
+    let next = null;
+    if (event.key in STEPS) next = (current + STEPS[event.key] + tabs.length) % tabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    if (next === null) return;
+    event.preventDefault();
+    select(next, { focus: true, fromUser: true });
+  });
+
+  tablist.append(...tabs);
+  wrapper.append(tablist, panel);
+  select(0);
+  return wrapper;
 }
 
 function createEpisode(episode) {
@@ -257,7 +315,7 @@ function createEpisode(episode) {
 
   const summaryText = htmlToText(episode.summary);
   if (summaryText) {
-    const summary = createElement('p', 'episode__summary', truncate(summaryText, EPISODE_SUMMARY_LENGTH));
+    const summary = createElement('p', 'episode__summary', summaryText);
     summary.lang = 'en';
     body.append(summary);
   }

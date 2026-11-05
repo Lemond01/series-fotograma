@@ -3,274 +3,380 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Descubre y consulta series de televisión: selección editorial, géneros y programación web.">
-  <meta name="theme-color" content="#070a12">
-  <title>Series Atlas — Descubre series de televisión</title>
+  <meta name="description" content="Descubre y consulta series de televisión: selección editorial, catálogo, géneros y programación web.">
+  <meta name="theme-color" content="#090b11">
+  <title>Fotograma — Series para descubrir</title>
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
   <link rel="preconnect" href="https://static.tvmaze.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&amp;family=Lato:wght@400;700&amp;display=swap">
   <link rel="stylesheet" href="css/main.css">
-  <script>document.documentElement.classList.add("js");</script>
+  <link rel="expect" href="#contenido" blocking="render">
+  <script>document.documentElement.classList.add("js");if(matchMedia("(hover: hover) and (pointer: fine)").matches)document.documentElement.classList.add("has-page-scrollbar");</script>
   <script type="module" src="src/js/main.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-  <header class="site-header">
+  <header class="site-header site-header--overlay" data-site-header>
     <div class="container site-header__inner">
-      <a class="site-logo" href="index.html" aria-label="Series Atlas, ir al inicio">
-        <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
-        <span>Series <span class="site-logo__accent">Atlas</span></span>
+      <a class="site-logo" href="index.html">
+        <span class="site-logo__mark" aria-hidden="true"></span>
+        <span class="site-logo__name" data-brand-name>Fotograma</span>
       </a>
       <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
         <svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-menu"></use></svg>
       </button>
       <nav class="site-nav" id="site-nav" aria-label="Navegación principal">
-        <ul class="site-nav__list">
+        <ul class="site-nav__list site-nav__list--sections">
           <li><a class="site-nav__link" href="index.html" aria-current="page">Inicio</a></li>
+          <li><a class="site-nav__link" href="#estrenos">Estrenos</a></li>
+          <li><a class="site-nav__link" href="#seleccion">Nuestra selección</a></li>
+          <li><a class="site-nav__link" href="#generos">Géneros</a></li>
+          <li><a class="site-nav__link" href="#populares">Populares</a></li>
+        </ul>
+        <div class="site-search" data-site-search>
+          <button class="site-search__toggle" type="button" aria-expanded="false" aria-controls="site-search-form" aria-label="Buscar series" data-site-search-toggle>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+          </button>
+          <form class="site-search__form" id="site-search-form" action="explorar.html" method="get" role="search">
+            <label class="u-visually-hidden" for="site-search-input">Buscar series por título</label>
+            <svg class="icon site-search__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+            <input class="site-search__input" id="site-search-input" type="search" name="q" placeholder="Buscar series por título" autocomplete="off" minlength="2" required>
+            <button class="site-search__close" type="button" aria-label="Cerrar la búsqueda" data-site-search-close>
+              <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-close"></use></svg>
+            </button>
+          </form>
+        </div>
+        <ul class="site-nav__list site-nav__list--secondary">
           <li><a class="site-nav__link" href="explorar.html">Explorar</a></li>
-          <li><a class="site-nav__link site-nav__link--favorites" href="explorar.html#favoritos" data-nav-favorites><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg>Favoritos<span class="site-nav__count" data-favorites-count hidden></span></a></li>
+          <li><a class="site-nav__link site-nav__link--favorites" href="explorar.html#favoritos" data-nav-favorites>Favoritos<span class="site-nav__count" data-favorites-count hidden></span></a></li>
         </ul>
       </nav>
     </div>
   </header>
 
   <main id="contenido">
-    <section class="hero" aria-labelledby="hero-title" aria-busy="true" data-hero>
-      <img class="hero__backdrop" alt="" width="680" height="1000" fetchpriority="high" hidden data-hero-image>
-      <div class="container">
-        <div class="hero__content">
-          <p class="hero__eyebrow">Serie destacada</p>
-          <h1 class="hero__title" id="hero-title" data-hero-title>
-            <span class="skeleton skeleton--title" aria-hidden="true"></span>
-            <span class="u-visually-hidden">Cargando serie destacada</span>
-          </h1>
-          <ul class="meta-list" data-hero-meta></ul>
-          <p class="hero__description" data-hero-description>
-            <span class="skeleton skeleton--text" aria-hidden="true"></span>
-            <span class="skeleton skeleton--text skeleton--short" aria-hidden="true"></span>
-          </p>
-          <div class="hero__actions" data-hero-actions hidden>
-            <a class="btn btn--primary" href="detalle.html" data-hero-link>Ver detalles <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></a>
-            <button class="btn btn--secondary btn--favorite" type="button" data-favorite-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg><span data-favorite-label>Agregar a favoritos</span></button>
+    <h1 class="u-visually-hidden"><span data-brand-name>Fotograma</span>: series para descubrir</h1>
+
+    <section class="hero" aria-roledescription="carrusel" aria-label="Series destacadas" data-hero>
+      <div class="hero__slides" data-hero-slides>
+        <div class="hero__slide is-active" aria-hidden="true" data-hero-placeholder>
+          <div class="container hero__content">
+            <p class="hero__eyebrow">Serie destacada</p>
+            <span class="skeleton hero__skeleton-title" data-hero-skeleton></span>
+            <p class="hero__description" data-hero-message>
+              <span class="skeleton skeleton--text"></span>
+              <span class="skeleton skeleton--text skeleton--short"></span>
+            </p>
           </div>
         </div>
       </div>
+      <div class="container hero__controls" data-hero-controls hidden>
+        <p class="hero__counter" aria-hidden="true"><span data-hero-current>01</span> <span class="hero__counter-total">/ <span data-hero-total>01</span></span></p>
+        <div class="hero__dots" data-hero-dots></div>
+        <div class="hero__buttons">
+          <button class="hero__button" type="button" aria-label="Serie anterior" data-hero-prev><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+          <button class="hero__button" type="button" aria-label="Pausar el carrusel" data-hero-toggle><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-pause"></use></svg></button>
+          <button class="hero__button" type="button" aria-label="Serie siguiente" data-hero-next><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+        </div>
+      </div>
+      <p class="u-visually-hidden" aria-live="polite" data-hero-status></p>
     </section>
 
-    <section class="search-panel" aria-labelledby="search-title">
-      <div class="container">
-        <div class="search-panel__inner">
-          <div>
-            <h2 class="search-panel__title" id="search-title">¿Qué quieres ver hoy?</h2>
-            <p class="search-panel__text">Busca series por título en el catálogo de TVmaze.</p>
-          </div>
-          <form class="search-form" action="explorar.html" method="get" role="search">
-            <div class="search-form__field">
-              <label class="u-visually-hidden" for="home-search">Buscar series por título</label>
-              <svg class="icon search-form__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-              <input class="search-form__input" id="home-search" type="search" name="q" placeholder="Buscar por título…" autocomplete="off" minlength="2" required>
+    <div class="home-content">
+      <div class="home-content__edge" aria-hidden="true" data-hero-edge></div>
+
+      <section class="section schedule" aria-labelledby="schedule-title">
+        <div class="container">
+          <header class="section__header" id="estrenos">
+            <div>
+              <p class="section__eyebrow">Hoy en plataformas web</p>
+              <h2 class="section__title" id="schedule-title">Programación web</h2>
+              <p class="section__description">Series con episodios que se estrenan hoy, según TVmaze. Horas en tu zona horaria.</p>
             </div>
-            <button class="btn btn--primary search-form__submit" type="submit">Buscar</button>
-          </form>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" aria-labelledby="discover-title">
-      <div class="container">
-        <header class="section__header">
-          <div>
-            <p class="section__eyebrow">Selección editorial</p>
-            <h2 class="section__title" id="discover-title">Series para empezar</h2>
-            <p class="section__description">Una selección de series reconocidas para encontrar tu próxima favorita.</p>
+          </header>
+          <div class="schedule__board" aria-busy="true" data-schedule>
+            <p class="schedule__notice" data-schedule-notice><span data-schedule-notice-text>Cargando la programación de hoy…</span></p>
+            <ul class="schedule__list" data-schedule-list>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            <li class="schedule__item" aria-hidden="true">
+              <span class="skeleton skeleton--time"></span>
+              <span class="skeleton skeleton--thumb"></span>
+              <span class="schedule__text">
+                <span class="skeleton skeleton--line"></span>
+                <span class="skeleton skeleton--line skeleton--short"></span>
+              </span>
+            </li>
+            </ul>
           </div>
-          <a class="section__link" href="explorar.html">Buscar más series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></a>
-        </header>
-        <div data-discover-status>
-          <div class="status-message status-message--error" data-status="error" hidden>
-            <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
-            <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
-            <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
-            <div class="status-message__actions">
-            <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="editorial-title">
+        <div class="container">
+          <header class="section__header" id="seleccion">
+            <div>
+              <p class="section__eyebrow">Selección editorial</p>
+              <h2 class="section__title" id="editorial-title">Para empezar</h2>
+              <p class="section__description">Cinco series elegidas a mano para entrar en el archivo. Es una selección propia, no un ranking.</p>
+            </div>
+          </header>
+          <div data-editorial-status>
+            <div class="status-message status-message--error" data-status="error" hidden>
+              <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+              <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
+              <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
+              <div class="status-message__actions">
+                <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+              </div>
             </div>
           </div>
-        </div>
-        <ul class="series-grid series-grid--featured" aria-busy="true" data-discover-grid>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-          <li class="series-card series-card--skeleton" aria-hidden="true">
-            <span class="series-card__poster skeleton skeleton--poster"></span>
-            <span class="skeleton skeleton--line"></span>
-            <span class="skeleton skeleton--line skeleton--short"></span>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="section" aria-labelledby="genres-title">
-      <div class="container">
-        <header class="section__header">
-          <div>
-            <p class="section__eyebrow">Géneros</p>
-            <h2 class="section__title" id="genres-title">Explora por género</h2>
-          </div>
-        </header>
-        <ul class="genre-grid">
-          <li>
-            <a class="genre-tile genre-tile--violet" href="explorar.html?genre=Drama">
-              <span class="genre-tile__name">Drama</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--magenta" href="explorar.html?genre=Comedy">
-              <span class="genre-tile__name">Comedia</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--red" href="explorar.html?genre=Science-Fiction">
-              <span class="genre-tile__name">Ciencia ficción</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--violet" href="explorar.html?genre=Crime">
-              <span class="genre-tile__name">Crimen</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--magenta" href="explorar.html?genre=Horror">
-              <span class="genre-tile__name">Terror</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--red" href="explorar.html?genre=Fantasy">
-              <span class="genre-tile__name">Fantasía</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--violet" href="explorar.html?genre=Thriller">
-              <span class="genre-tile__name">Thriller</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-          <li>
-            <a class="genre-tile genre-tile--magenta" href="explorar.html?genre=Romance">
-              <span class="genre-tile__name">Romance</span>
-              <span class="genre-tile__hint">Ver series <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="section schedule" aria-labelledby="schedule-title">
-      <div class="container">
-        <header class="section__header">
-          <div>
-            <p class="section__eyebrow">Hoy en streaming</p>
-            <h2 class="section__title" id="schedule-title">Programación web</h2>
-            <p class="section__description">Series con episodios que se estrenan hoy en plataformas web, según TVmaze. Horas en tu zona horaria.</p>
-          </div>
-        </header>
-        <div class="schedule__board" aria-busy="true" data-schedule>
-          <p class="schedule__notice" data-schedule-notice><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-clock"></use></svg><span data-schedule-notice-text>Cargando la programación de hoy…</span></p>
-          <ul class="schedule__list" data-schedule-list>
-            <li class="schedule__item" aria-hidden="true">
-              <span class="skeleton skeleton--time"></span>
-              <span class="skeleton skeleton--thumb"></span>
-              <span class="schedule__text">
-                <span class="skeleton skeleton--line"></span>
-                <span class="skeleton skeleton--line skeleton--short"></span>
-              </span>
+          <ul class="editorial-grid" aria-busy="true" data-editorial-grid>
+            <li class="editorial-grid__feature" aria-hidden="true">
+              <div class="feature">
+                <span class="feature__media skeleton skeleton--poster"></span>
+                <div>
+                  <span class="skeleton skeleton--title"></span>
+                  <span class="skeleton skeleton--text"></span>
+                  <span class="skeleton skeleton--text skeleton--short"></span>
+                </div>
+              </div>
             </li>
-            <li class="schedule__item" aria-hidden="true">
-              <span class="skeleton skeleton--time"></span>
-              <span class="skeleton skeleton--thumb"></span>
-              <span class="schedule__text">
-                <span class="skeleton skeleton--line"></span>
-                <span class="skeleton skeleton--line skeleton--short"></span>
-              </span>
+            <li class="series-card series-card--skeleton" aria-hidden="true">
+              <span class="series-card__poster skeleton skeleton--poster"></span>
+              <span class="skeleton skeleton--line"></span>
+              <span class="skeleton skeleton--line skeleton--short"></span>
             </li>
-            <li class="schedule__item" aria-hidden="true">
-              <span class="skeleton skeleton--time"></span>
-              <span class="skeleton skeleton--thumb"></span>
-              <span class="schedule__text">
-                <span class="skeleton skeleton--line"></span>
-                <span class="skeleton skeleton--line skeleton--short"></span>
-              </span>
+            <li class="series-card series-card--skeleton" aria-hidden="true">
+              <span class="series-card__poster skeleton skeleton--poster"></span>
+              <span class="skeleton skeleton--line"></span>
+              <span class="skeleton skeleton--line skeleton--short"></span>
             </li>
-            <li class="schedule__item" aria-hidden="true">
-              <span class="skeleton skeleton--time"></span>
-              <span class="skeleton skeleton--thumb"></span>
-              <span class="schedule__text">
-                <span class="skeleton skeleton--line"></span>
-                <span class="skeleton skeleton--line skeleton--short"></span>
-              </span>
+            <li class="series-card series-card--skeleton" aria-hidden="true">
+              <span class="series-card__poster skeleton skeleton--poster"></span>
+              <span class="skeleton skeleton--line"></span>
+              <span class="skeleton skeleton--line skeleton--short"></span>
+            </li>
+            <li class="series-card series-card--skeleton" aria-hidden="true">
+              <span class="series-card__poster skeleton skeleton--poster"></span>
+              <span class="skeleton skeleton--line"></span>
+              <span class="skeleton skeleton--line skeleton--short"></span>
             </li>
           </ul>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="section" aria-labelledby="genres-title">
+        <div class="container">
+          <header class="section__header" id="generos">
+            <div>
+              <p class="section__eyebrow">Géneros</p>
+              <h2 class="section__title" id="genres-title">Por dónde mirar</h2>
+            </div>
+            <a class="section__link" href="explorar.html">Todo el catálogo <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></a>
+          </header>
+          <ol class="genre-index">
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Drama">
+                <span class="genre-index__number">01</span>
+                <span class="genre-index__name">Drama</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Comedy">
+                <span class="genre-index__number">02</span>
+                <span class="genre-index__name">Comedia</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Science-Fiction">
+                <span class="genre-index__number">03</span>
+                <span class="genre-index__name">Ciencia ficción</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Crime">
+                <span class="genre-index__number">04</span>
+                <span class="genre-index__name">Crimen</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Horror">
+                <span class="genre-index__number">05</span>
+                <span class="genre-index__name">Terror</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Fantasy">
+                <span class="genre-index__number">06</span>
+                <span class="genre-index__name">Fantasía</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Thriller">
+                <span class="genre-index__number">07</span>
+                <span class="genre-index__name">Thriller</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+            <li>
+              <a class="genre-index__link" href="explorar.html?genre=Romance">
+                <span class="genre-index__number">08</span>
+                <span class="genre-index__name">Romance</span>
+                <svg class="icon genre-index__arrow" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg>
+              </a>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="discover-title">
+        <div class="container">
+          <header class="section__header" id="populares">
+            <div>
+              <p class="section__eyebrow">Del archivo</p>
+              <h2 class="section__title" id="discover-title">Descubre más series</h2>
+              <p class="section__description">Una muestra del índice de TVmaze: series con una puntuación de 8 o más.</p>
+            </div>
+            <div class="section__aside">
+              <div class="rail__controls">
+                <button class="rail__button" type="button" aria-label="Desplazar la galería a la izquierda" aria-controls="discover-rail" data-rail-prev><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+                <button class="rail__button" type="button" aria-label="Desplazar la galería a la derecha" aria-controls="discover-rail" data-rail-next><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
+              </div>
+            </div>
+          </header>
+          <div data-discover-status>
+            <div class="status-message status-message--error" data-status="error" hidden>
+              <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
+              <p class="status-message__title" data-error-title>No pudimos cargar los datos</p>
+              <p class="status-message__text" data-error-text>Inténtalo de nuevo en unos segundos.</p>
+              <div class="status-message__actions">
+                <button class="btn btn--secondary" type="button" data-retry>Reintentar</button>
+              </div>
+            </div>
+          </div>
+          <div class="rail">
+            <div class="rail__viewport" id="discover-rail" tabindex="0" role="region" aria-label="Galería de series del archivo" data-rail>
+              <ul class="rail__track" aria-busy="true" data-discover-grid>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+                <li class="series-card series-card--skeleton" aria-hidden="true">
+                  <span class="series-card__poster skeleton skeleton--poster"></span>
+                  <span class="skeleton skeleton--line"></span>
+                  <span class="skeleton skeleton--line skeleton--short"></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
   <footer class="site-footer">
     <div class="container site-footer__inner">
-      <div class="site-footer__brand">
-        <a class="site-logo" href="index.html">
-          <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
-          <span>Series <span class="site-logo__accent">Atlas</span></span>
-        </a>
-        <p class="site-footer__description">Un atlas para descubrir y consultar series de televisión: estrenos, géneros, temporadas y episodios.</p>
-      </div>
+      <p class="site-footer__brand"><span data-brand-name>Fotograma</span><span class="site-footer__tagline">Series para descubrir, con datos de TVmaze.</span></p>
       <nav class="site-footer__nav" aria-label="Navegación del pie de página">
-        <h2 class="site-footer__heading">Navegar</h2>
         <ul class="site-footer__list">
           <li><a class="site-footer__link" href="index.html">Inicio</a></li>
           <li><a class="site-footer__link" href="explorar.html">Explorar</a></li>
           <li><a class="site-footer__link" href="explorar.html#favoritos">Favoritos</a></li>
         </ul>
       </nav>
-      <div class="site-footer__credits">
-        <h2 class="site-footer__heading">Créditos</h2>
-        <p>Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
-        <p>Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
-      </div>
-    </div>
-    <div class="site-footer__bottom">
-      <p class="container">© 2026 Series Atlas · Proyecto educativo.</p>
+      <p class="site-footer__credits">Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
+      <p class="site-footer__legal">© 2026 <span data-brand-name>Fotograma</span> · Proyecto educativo.</p>
     </div>
   </footer>
 </body>

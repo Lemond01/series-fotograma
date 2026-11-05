@@ -1,5 +1,36 @@
 @use "variables" as *;
 
+// Fuentes de reserva con las medidas de las reales: mientras llegan Kanit y Lato
+// (primera visita), el texto ocupa casi lo mismo y al cambiar no se mueve el menú ni los títulos.
+// size-adjust iguala el ancho medio; los overrides, la altura de línea (divididos entre size-adjust).
+@font-face {
+  font-family: "Kanit Fallback";
+  src: local("Arial");
+  size-adjust: 99.47%;
+  ascent-override: 110.59%;
+  descent-override: 40.21%;
+  line-gap-override: 0%;
+}
+
+// Logotipo en mayúsculas espaciadas: lleva su propia escala
+@font-face {
+  font-family: "Kanit Caps Fallback";
+  src: local("Arial");
+  size-adjust: 92.45%;
+  ascent-override: 118.98%;
+  descent-override: 43.27%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Lato Fallback";
+  src: local("Arial");
+  size-adjust: 98.2%;
+  ascent-override: 100.81%;
+  descent-override: 21.38%;
+  line-gap-override: 0%;
+}
+
 // Reset
 *,
 *::before,
@@ -11,21 +42,31 @@
   margin: 0;
 }
 
+:root {
+  --gutter: #{$gutter-fluid};
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   color-scheme: dark;
   scroll-padding-top: $header-height;
+  // Reserva el hueco de la barra de desplazamiento para que el header no se mueva entre páginas
+  scrollbar-gutter: stable;
+
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
   min-height: 100vh;
+  background-color: $color-bg;
+  color: $color-text;
   font-family: $font-body;
   font-size: $fs-base;
   font-weight: $fw-regular;
   line-height: $lh-base;
-  color: $color-text;
-  background-color: $color-bg;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -33,12 +74,13 @@ h1,
 h2,
 h3,
 h4 {
+  color: $color-title;
   font-family: $font-display;
-  font-weight: $fw-semibold;
-  line-height: $lh-tight;
+  font-weight: $fw-medium;
   letter-spacing: -0.01em;
-  text-wrap: balance;
+  line-height: $lh-tight;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 p {
@@ -57,8 +99,8 @@ input,
 button,
 textarea,
 select {
-  font: inherit;
   color: inherit;
+  font: inherit;
 }
 
 button {
@@ -66,7 +108,7 @@ button {
 }
 
 a {
-  color: $color-primary-text;
+  color: $color-accent-text;
   text-underline-offset: 0.2em;
 }
 
@@ -80,8 +122,8 @@ a {
 }
 
 ::selection {
-  background-color: $magenta-500;
-  color: #fff;
+  background-color: $color-accent-strong;
+  color: $color-title;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -90,8 +132,87 @@ a {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Transición entre páginas: el header queda fijo y el contenido hace un fundido.
+// Chrome/Edge 126+ y Safari 18.2+; en el resto la navegación es la normal.
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-old(root) {
+  animation: page-out 160ms ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: page-in 320ms $ease-out 80ms both;
+}
+
+::view-transition-group(site-header) {
+  animation-duration: 320ms;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+// Barra de la página (con ratón): la nativa se oculta y scrollbars.js dibuja una flotante,
+// con pista transparente, que aparece al desplazarse o al acercar el puntero y no ocupa espacio
+.has-page-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.page-scrollbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  width: 0.75rem;
+  padding: 4px 3px;
+  opacity: 0;
+  transition: opacity 400ms ease;
+
+  &.is-visible,
+  &:hover,
+  &.is-dragging {
+    opacity: 1;
+    transition-duration: 150ms;
+  }
+
+  &.is-disabled {
+    display: none;
+  }
+
+  &__thumb {
+    width: 100%;
+    border-radius: $radius-pill;
+    background-color: rgba($ivory-50, 0.34);
+    box-shadow: 0 0 0 1px rgba($carbon-950, 0.35);
+    will-change: transform;
+    transition: background-color $duration-fast ease;
+  }
+
+  &:hover &__thumb,
+  &.is-dragging &__thumb {
+    background-color: rgba($ivory-50, 0.6);
   }
 }
 

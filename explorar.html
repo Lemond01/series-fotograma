@@ -4,35 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Explora el catálogo de series: busca por título, filtra por género y estado y ordena los resultados.">
-  <meta name="theme-color" content="#070a12">
-  <title>Explorar series — Series Atlas</title>
+  <meta name="theme-color" content="#090b11">
+  <title>Explorar — Fotograma</title>
   <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://api.tvmaze.com" crossorigin>
   <link rel="preconnect" href="https://static.tvmaze.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&amp;family=Lato:wght@400;700&amp;display=swap">
   <link rel="stylesheet" href="css/main.css">
-  <script>document.documentElement.classList.add("js");if(location.hash==="#favoritos")document.documentElement.classList.add("view-favorites");</script>
+  <link rel="expect" href="#contenido" blocking="render">
+  <script>document.documentElement.classList.add("js");if(matchMedia("(hover: hover) and (pointer: fine)").matches)document.documentElement.classList.add("has-page-scrollbar");if(location.hash==="#favoritos")document.documentElement.classList.add("view-favorites");</script>
   <script type="module" src="src/js/explorar.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
 
-  <header class="site-header">
+  <header class="site-header" data-site-header>
     <div class="container site-header__inner">
-      <a class="site-logo" href="index.html" aria-label="Series Atlas, ir al inicio">
-        <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
-        <span>Series <span class="site-logo__accent">Atlas</span></span>
+      <a class="site-logo" href="index.html">
+        <span class="site-logo__mark" aria-hidden="true"></span>
+        <span class="site-logo__name" data-brand-name>Fotograma</span>
       </a>
       <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
         <svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-menu"></use></svg>
       </button>
       <nav class="site-nav" id="site-nav" aria-label="Navegación principal">
-        <ul class="site-nav__list">
+        <ul class="site-nav__list site-nav__list--sections">
           <li><a class="site-nav__link" href="index.html">Inicio</a></li>
+          <li><a class="site-nav__link" href="index.html#estrenos">Estrenos</a></li>
+          <li><a class="site-nav__link" href="index.html#seleccion">Nuestra selección</a></li>
+          <li><a class="site-nav__link" href="index.html#generos">Géneros</a></li>
+          <li><a class="site-nav__link" href="index.html#populares">Populares</a></li>
+        </ul>
+        <div class="site-search" data-site-search>
+          <button class="site-search__toggle" type="button" aria-expanded="false" aria-controls="site-search-form" aria-label="Buscar series" data-site-search-toggle>
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+          </button>
+          <form class="site-search__form" id="site-search-form" action="explorar.html" method="get" role="search">
+            <label class="u-visually-hidden" for="site-search-input">Buscar series por título</label>
+            <svg class="icon site-search__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+            <input class="site-search__input" id="site-search-input" type="search" name="q" placeholder="Buscar series por título" autocomplete="off" minlength="2" required>
+            <button class="site-search__close" type="button" aria-label="Cerrar la búsqueda" data-site-search-close>
+              <svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-close"></use></svg>
+            </button>
+          </form>
+        </div>
+        <ul class="site-nav__list site-nav__list--secondary">
           <li><a class="site-nav__link" href="explorar.html" aria-current="page">Explorar</a></li>
-          <li><a class="site-nav__link site-nav__link--favorites" href="explorar.html#favoritos" data-nav-favorites><svg class="icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg>Favoritos<span class="site-nav__count" data-favorites-count hidden></span></a></li>
+          <li><a class="site-nav__link site-nav__link--favorites" href="explorar.html#favoritos" data-nav-favorites>Favoritos<span class="site-nav__count" data-favorites-count hidden></span></a></li>
         </ul>
       </nav>
     </div>
@@ -42,43 +62,26 @@
     <header class="page-header">
       <div class="container">
         <p class="section__eyebrow" data-page-eyebrow>Catálogo</p>
-        <h1 class="page-header__title" data-page-title>Explorar series</h1>
-        <p class="page-header__description" data-page-description>Busca por título, filtra por género o estado y ordena el catálogo a tu manera.</p>
+        <h1 class="page-header__title" id="page-title" data-page-title>Todas las series</h1>
+        <p class="page-header__description" aria-live="polite" data-favorites-only data-favorites-summary>Las series que guardes se conservan en este navegador.</p>
       </div>
     </header>
 
     <div class="container">
-      <section class="toolbar" aria-label="Búsqueda y filtros" data-explore-view>
-        <form class="search-form" action="explorar.html" method="get" role="search" data-search-form>
-          <div class="search-form__field">
-            <label class="u-visually-hidden" for="explore-search">Buscar series por título</label>
-            <svg class="icon search-form__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            <input class="search-form__input" id="explore-search" type="search" name="q" placeholder="Buscar por título…" autocomplete="off" data-search-input>
-          </div>
-          <button class="btn btn--primary search-form__submit" type="submit">Buscar</button>
-        </form>
-
-        <fieldset class="filter-group">
-          <legend class="filter-group__legend">Género <span class="filter-group__hint">· cualquiera de los seleccionados</span></legend>
-          <ul class="chip-list" data-genre-filter>
-              <li><button class="chip" type="button" data-genre="" aria-pressed="true">Todos</button></li>
-              <li><button class="chip" type="button" data-genre="Drama" aria-pressed="false">Drama</button></li>
-              <li><button class="chip" type="button" data-genre="Comedy" aria-pressed="false">Comedia</button></li>
-              <li><button class="chip" type="button" data-genre="Science-Fiction" aria-pressed="false">Ciencia ficción</button></li>
-              <li><button class="chip" type="button" data-genre="Crime" aria-pressed="false">Crimen</button></li>
-              <li><button class="chip" type="button" data-genre="Horror" aria-pressed="false">Terror</button></li>
-              <li><button class="chip" type="button" data-genre="Fantasy" aria-pressed="false">Fantasía</button></li>
-              <li><button class="chip" type="button" data-genre="Thriller" aria-pressed="false">Thriller</button></li>
-              <li><button class="chip" type="button" data-genre="Romance" aria-pressed="false">Romance</button></li>
-              <li><button class="chip" type="button" data-genre="Mystery" aria-pressed="false">Misterio</button></li>
-              <li data-more-genres-item hidden><button class="chip chip--more" type="button" aria-expanded="false" data-more-genres>Más géneros</button></li>
-          </ul>
-        </fieldset>
-
+      <section class="toolbar" aria-label="Filtros" data-explore-view>
         <div class="toolbar__row">
             <div class="field">
+              <label class="field__label" for="genero">Género</label>
+              <div class="select select--filter select--columns">
+                <select class="select__control" id="genero" name="genero">
+                  <option value="">Todos</option>
+                </select>
+                <svg class="icon select__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-chevron-down"></use></svg>
+              </div>
+            </div>
+            <div class="field">
               <label class="field__label" for="estado">Estado <span class="field__hint" data-status-scope></span></label>
-              <div class="select">
+              <div class="select select--filter">
                 <select class="select__control" id="estado" name="estado">
                   <option value="">Todos</option>
                 </select>
@@ -104,21 +107,13 @@
         </div>
       </section>
 
-      <section class="results" aria-labelledby="results-title" data-explore-view>
-        <header class="results__header">
-          <h2 class="results__title" id="results-title" data-results-title>Resultados</h2>
-          <p class="results__count" aria-live="polite" data-results-count></p>
-        </header>
-
-        <nav class="pagination pagination--top" aria-label="Paginación del catálogo, arriba" data-pagination>
-          <button class="btn btn--secondary pagination__button" type="button" data-page-prev><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg><span class="pagination__text">Anterior</span></button>
-          <p class="pagination__current" aria-live="polite" data-page-label>Página 1</p>
-          <button class="btn btn--secondary pagination__button" type="button" data-page-next><span class="pagination__text">Siguiente</span><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
-        </nav>
+      <section class="results" aria-labelledby="page-title" data-explore-view>
+        <p class="u-visually-hidden" aria-live="polite" data-results-count></p>
 
         <div class="results__notice" role="status" data-results-notice hidden>
           <svg class="icon results__notice-icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-alert"></use></svg>
           <p class="results__notice-text" data-results-notice-text></p>
+          <button class="btn btn--secondary" type="button" data-results-notice-action hidden>Seguir buscando</button>
         </div>
 
         <div class="results__status" data-results-status>
@@ -203,22 +198,14 @@
           </li>
         </ul>
 
-        <nav class="pagination pagination--bottom" aria-label="Paginación del catálogo, abajo" data-pagination>
+        <nav class="pagination pagination--bottom" aria-label="Paginación del catálogo" data-pagination>
           <button class="btn btn--secondary pagination__button" type="button" data-page-prev><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg><span class="pagination__text">Anterior</span></button>
-          <p class="pagination__current" data-page-label>Página 1</p>
+          <p class="pagination__current" aria-live="polite" data-page-label>Página 1</p>
           <button class="btn btn--secondary pagination__button" type="button" data-page-next><span class="pagination__text">Siguiente</span><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-right"></use></svg></button>
         </nav>
       </section>
 
-      <section class="section favorites" id="favoritos" aria-labelledby="favorites-title" data-favorites-view hidden>
-        <header class="section__header">
-          <div>
-            <h2 class="section__title" id="favorites-title">Series guardadas</h2>
-            <p class="section__description" aria-live="polite" data-favorites-summary>Se conservan en este navegador.</p>
-          </div>
-          <a class="section__link" href="explorar.html"><svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>Volver a Explorar</a>
-        </header>
-
+      <section class="section favorites" aria-labelledby="page-title" data-favorites-view hidden>
         <div data-favorites-status>
           <div class="status-message favorites__empty" data-status="empty" hidden>
             <svg class="icon status-message__icon" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-heart"></use></svg>
@@ -251,29 +238,16 @@
 
   <footer class="site-footer">
     <div class="container site-footer__inner">
-      <div class="site-footer__brand">
-        <a class="site-logo" href="index.html">
-          <svg class="icon site-logo__mark" aria-hidden="true" focusable="false"><use href="assets/icons/sprite.svg#icon-globe"></use></svg>
-          <span>Series <span class="site-logo__accent">Atlas</span></span>
-        </a>
-        <p class="site-footer__description">Un atlas para descubrir y consultar series de televisión: estrenos, géneros, temporadas y episodios.</p>
-      </div>
+      <p class="site-footer__brand"><span data-brand-name>Fotograma</span><span class="site-footer__tagline">Series para descubrir, con datos de TVmaze.</span></p>
       <nav class="site-footer__nav" aria-label="Navegación del pie de página">
-        <h2 class="site-footer__heading">Navegar</h2>
         <ul class="site-footer__list">
           <li><a class="site-footer__link" href="index.html">Inicio</a></li>
           <li><a class="site-footer__link" href="explorar.html">Explorar</a></li>
           <li><a class="site-footer__link" href="explorar.html#favoritos">Favoritos</a></li>
         </ul>
       </nav>
-      <div class="site-footer__credits">
-        <h2 class="site-footer__heading">Créditos</h2>
-        <p>Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.</p>
-        <p>Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
-      </div>
-    </div>
-    <div class="site-footer__bottom">
-      <p class="container">© 2026 Series Atlas · Proyecto educativo.</p>
+      <p class="site-footer__credits">Datos de series de <a href="https://www.tvmaze.com/" rel="noopener">TVmaze</a>, bajo licencia <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>. Pósteres e imágenes servidos por TVmaze; pertenecen a sus respectivos titulares.</p>
+      <p class="site-footer__legal">© 2026 <span data-brand-name>Fotograma</span> · Proyecto educativo.</p>
     </div>
   </footer>
 </body>

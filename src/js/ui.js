@@ -1,18 +1,42 @@
 import { isFavorite, toggleFavorite, getFavoritesCount, onFavoritesChange } from './favorites.js';
+import { BRAND } from './brand.js';
+import { initScrollbars } from './scrollbars.js';
 
 const SPRITE_URL = 'assets/icons/sprite.svg';
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const DESKTOP_NAV_QUERY = '(min-width: 768px)';
+const DESKTOP_NAV_QUERY = '(min-width: 1024px)';
+const SEARCH_CLOSE_MS = 400; // algo más que la animación de cierre de .site-search__form
+
+// Ancho aproximado de una tarjeta según el grid (ver .series-grid, .rail y .editorial-grid)
+const CARD_IMAGE_SIZES = '(min-width: 1920px) 16vw, (min-width: 1600px) 17vw, (min-width: 1280px) 20vw, (min-width: 768px) 25vw, (min-width: 480px) 33vw, 50vw';
 
 // Header
 export function initSiteHeader() {
+  const header = document.querySelector('[data-site-header]');
   const toggle = document.querySelector('.site-header__toggle');
   const nav = document.getElementById('site-nav');
   if (!toggle || !nav) return;
 
   const iconUse = toggle.querySelector('use');
 
+  // Header transparente sobre el hero de Inicio: se vuelve sólido al desplazarse
+  if (header?.classList.contains('site-header--overlay')) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      header.classList.toggle('is-scrolled', window.scrollY > 40);
+    };
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    }, { passive: true });
+    update();
+  }
+
   const setOpen = (open) => {
+    header?.classList.toggle('is-menu-open', open);
     nav.classList.toggle('site-nav--open', open);
     toggle.setAttribute('aria-expanded', String(open));
     toggle.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
@@ -33,6 +57,171 @@ export function initSiteHeader() {
   window.matchMedia(DESKTOP_NAV_QUERY).addEventListener('change', (event) => {
     if (event.matches) setOpen(false);
   });
+
+  initSiteSearch(header);
+  initSectionLinks(nav, () => setOpen(false));
+}
+
+// Búsqueda del header (escritorio): se abre desde la lupa y se cierra con Escape, la X o al hacer clic fuera.
+// Abrir y cerrar usan la misma animación en sentidos opuestos (ver .site-search__form).
+function initSiteSearch(header) {
+  const root = document.querySelector('[data-site-search]');
+  const toggle = root?.querySelector('[data-site-search-toggle]');
+  const form = root?.querySelector('form');
+  const input = form?.querySelector('input');
+  if (!toggle || !input) return;
+
+  const close = root.querySelector('[data-site-search-close]');
+  const sections = document.querySelector('.site-nav__list--sections');
+  const desktop = window.matchMedia(DESKTOP_NAV_QUERY);
+  const isOpen = () => root.classList.contains('is-open');
+  let clearTimer = 0;
+
+  // Las secciones solo se ocultan si el campo abierto llega a taparlas
+  const updateCovering = () => {
+    const covering = isOpen() && desktop.matches && sections
+      && form.getBoundingClientRect().left < sections.getBoundingClientRect().right + 24;
+    header?.classList.toggle('is-search-covering', Boolean(covering));
+  };
+
+  const setOpen = (open, { restoreFocus = true } = {}) => {
+    clearTimeout(clearTimer);
+    root.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    updateCovering();
+    if (open) input.focus();
+    else if (restoreFocus) toggle.focus();
+  };
+
+  toggle.addEventListener('click', () => setOpen(true));
+
+  // La X vacía el campo, pero después de que termine de cerrarse
+  close?.addEventListener('click', () => {
+    setOpen(false);
+    clearTimer = setTimeout(() => {
+      if (!isOpen()) input.value = '';
+    }, SEARCH_CLOSE_MS);
+  });
+
+  form.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isOpen()) {
+      event.stopPropagation();
+      setOpen(false);
+    }
+  });
+
+  // Clic fuera: se cierra (si solo se cambió de ventana, sigue abierta)
+  root.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (isOpen() && document.hasFocus() && !root.contains(document.activeElement)) {
+        setOpen(false, { restoreFocus: false });
+      }
+    }, 0);
+  });
+
+  window.addEventListener('resize', () => {
+    if (isOpen()) updateCovering();
+  });
+  desktop.addEventListener('change', () => {
+    if (isOpen()) setOpen(false, { restoreFocus: false });
+  });
+}
+
+// Enlaces a secciones de Inicio: cierran el menú móvil y marcan la sección visible
+function initSectionLinks(nav, closeMenu) {
+  const list = nav.querySelector('.site-nav__list--sections');
+  if (!list) return;
+
+  const home = list.querySelector('[aria-current="page"]');
+  const links = [...list.querySelectorAll('a[href*="#"]')]
+    .filter((link) => link.pathname === location.pathname && link.hash);
+  const targets = new Map();
+  links.forEach((link) => {
+    const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+    if (target) targets.set(target.closest('section') ?? target, link);
+  });
+
+  const header = document.querySelector('[data-site-header]');
+  const sections = [...targets.keys()];
+  let active;
+  let ticking = false;
+  let holding = false;
+  let releaseTimer = 0;
+
+  const setActive = (section) => {
+    if (section === active) return;
+    active = section;
+    targets.forEach((link, key) => {
+      if (key === active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  };
+
+  // Activa la última sección cuyo inicio ya pasó una línea cercana al header
+  // (o la última de todas al llegar al final de la página)
+  const update = () => {
+    ticking = false;
+    if (holding) return;
+    const line = (header?.offsetHeight ?? 0) + window.innerHeight * 0.25;
+    const root = document.documentElement;
+    let next = null;
+    if (window.scrollY + window.innerHeight >= root.scrollHeight - 2) {
+      next = sections.at(-1);
+    } else {
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top > line) break;
+        next = section;
+      }
+    }
+    setActive(next);
+  };
+
+  const request = () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  };
+
+  // Tras un clic, la marca va directa al destino y el seguimiento espera a que el scroll se detenga
+  const release = (delay) => {
+    clearTimeout(releaseTimer);
+    releaseTimer = setTimeout(() => {
+      holding = false;
+      request();
+    }, delay);
+  };
+
+  const hold = (section) => {
+    setActive(section);
+    holding = true;
+    release(400);
+  };
+
+  // En Inicio, «Inicio» sube al principio en lugar de recargar la página
+  home?.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    closeMenu();
+    hold(null);
+    history.replaceState(null, '', location.pathname + location.search);
+    window.scrollTo({ top: 0 });
+  });
+
+  targets.forEach((link, section) => {
+    link.addEventListener('click', () => {
+      closeMenu();
+      hold(section);
+    });
+  });
+  if (targets.size === 0) return;
+
+  window.addEventListener('scroll', () => {
+    if (holding) release(150);
+    else request();
+  }, { passive: true });
+  window.addEventListener('resize', request);
+  update();
 }
 
 function markImageEmpty(img) {
@@ -67,7 +256,15 @@ export function setImage(img, url, alt = '') {
   watchImage(img);
 }
 
+function syncBrand() {
+  document.querySelectorAll('[data-brand-name]').forEach((node) => {
+    node.textContent = BRAND.name;
+  });
+}
+
 export function initPage() {
+  syncBrand();
+  initScrollbars();
   initSiteHeader();
   initImageFallbacks();
   initFavoriteButtons();
@@ -181,12 +378,17 @@ export function createSeriesCard(show) {
   const poster = createElement('div', 'series-card__poster media');
   if (show.image) {
     const img = createElement('img', 'series-card__img media__img');
-    img.src = show.image.medium;
+    // loading antes de src: si no, la imagen se descarga aunque esté fuera de pantalla
+    img.loading = 'lazy';
+    img.decoding = 'async';
     img.alt = `Póster de ${show.name}`;
     img.width = 210;
     img.height = 295;
-    img.loading = 'lazy';
-    img.decoding = 'async';
+    if (show.image.original !== show.image.medium) {
+      img.sizes = CARD_IMAGE_SIZES;
+      img.srcset = `${show.image.medium} 210w, ${show.image.original} 680w`;
+    }
+    img.src = show.image.medium;
     poster.append(img);
     watchImage(img);
   } else {

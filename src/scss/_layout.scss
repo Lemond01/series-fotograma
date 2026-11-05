@@ -11,25 +11,18 @@ main {
 
 .container {
   width: 100%;
-  max-width: $container-max;
-  margin-inline: auto;
-  padding-inline: $container-gutter;
-
-  @include mq(md) {
-    padding-inline: $container-gutter-md;
-  }
+  padding-inline: $gutter;
 }
 
 .skip-link {
   position: absolute;
   top: $space-2;
   left: $space-2;
-  z-index: 200;
+  z-index: 300;
   padding: $space-2 $space-4;
-  border-radius: $radius-sm;
-  background-color: $color-text;
+  background-color: $color-title;
   color: $color-bg;
-  font-weight: $fw-bold;
+  font-weight: $fw-semibold;
   transform: translateY(-200%);
 
   &:focus {
@@ -43,15 +36,15 @@ main {
   top: 0;
   z-index: 100;
   border-bottom: 1px solid $color-border;
-  background-color: rgba($color-bg-deep, 0.88);
-  backdrop-filter: blur(12px);
+  background-color: rgba($color-bg, 0.92);
+  backdrop-filter: blur(14px);
+  view-transition-name: site-header;
 
   &__inner {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: $space-2 $space-4;
+    gap: $space-2 $space-7;
     min-height: $header-height;
   }
 
@@ -61,124 +54,351 @@ main {
     justify-content: center;
     width: $tap-target;
     height: $tap-target;
-    border: 1px solid $color-border-strong;
-    border-radius: $radius-sm;
+    margin-right: -$space-3;
+    margin-left: auto;
+    border: 0;
     background: transparent;
-    color: $color-text;
+    color: $color-title;
+  }
+
+  // Inicio: transparente sobre el hero, sólido al desplazarse
+  &--overlay {
+    position: fixed;
+    inset: 0 0 auto;
+    border-bottom: 0;
+    background: linear-gradient(to bottom, rgba($color-bg-deep, 0.75), rgba($color-bg-deep, 0));
+    backdrop-filter: none;
+    transition: background-color $duration-base ease, box-shadow $duration-base ease;
+  }
+
+  &--overlay.is-scrolled,
+  &--overlay.is-menu-open {
+    background: rgba($color-bg, 0.92);
+    box-shadow: 0 1px 0 $color-border;
+    backdrop-filter: blur(14px);
   }
 }
 
 .site-logo {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: $space-2;
-  color: $color-text;
-  font-family: $font-display;
-  font-size: $fs-lg;
-  font-weight: $fw-bold;
-  letter-spacing: -0.01em;
+  gap: $space-3;
+  min-height: $tap-target;
+  color: $color-title;
   text-decoration: none;
 
   &__mark {
-    width: 1.75rem;
-    height: 1.75rem;
-    color: $color-primary-text;
+    width: 0.8rem;
+    height: 1.05rem;
+    border: 1.5px solid $color-title;
+    box-shadow: inset 0 0 0 2px $color-bg, inset 0 0 0 5px $color-accent;
   }
 
-  &__accent {
-    color: $color-primary-text;
+  // Logotipo: Kanit en mayúsculas espaciadas
+  &__name {
+    font-family: "Kanit", "Kanit Caps Fallback", system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: $fw-semibold;
+    letter-spacing: $tracking-wide;
+    line-height: 1;
+    text-transform: uppercase;
   }
 }
 
+// Navegación: secciones de Inicio a la izquierda; búsqueda, Explorar y Favoritos a la derecha
 .site-nav {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-1 $space-5;
+
   &__list {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: $space-1 $space-2;
+    gap: $space-1 $space-5;
     padding: 0;
     list-style: none;
+
+    @include mq(xl) {
+      column-gap: $space-6;
+    }
+
+    // Reaparecen cuando el buscador ya se está recogiendo
+    &--sections {
+      transition: opacity 200ms ease 160ms, visibility 0s linear 160ms;
+    }
   }
 
   &__link {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: $space-2;
     min-height: $tap-target;
-    padding-inline: $space-4;
-    border-radius: $radius-pill;
-    color: $color-text-muted;
+    color: $color-text-soft;
     font-size: $fs-sm;
-    font-weight: $fw-semibold;
     text-decoration: none;
-    transition: color $duration-fast ease, background-color $duration-fast ease;
+    white-space: nowrap;
+    transition: color $duration-fast ease;
 
-    &:hover {
-      color: $color-text;
+    &::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0.6rem;
+      left: 0;
+      height: 1px;
+      background-color: currentColor;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform $duration-base $ease-out;
     }
 
-    &[aria-current="page"] {
-      background-color: rgba(255, 255, 255, 0.07);
-      color: $color-text;
+    &:hover,
+    &[aria-current] {
+      color: $color-title;
+    }
+
+    &:hover::after,
+    &[aria-current]::after {
+      transform: scaleX(1);
+    }
+
+    // Espacio reservado para el contador (ver &__count)
+    &--favorites {
+      @include mq(lg) {
+        margin-right: 2rem;
+      }
     }
   }
 
-  &__link--favorites .icon {
-    color: $color-secondary-text;
+  // Con una sección de Inicio activa, «Inicio» deja de resaltarse
+  &__list:has([aria-current="location"]) [aria-current="page"]:not(:hover) {
+    color: $color-text-soft;
+
+    &::after {
+      transform: scaleX(0);
+    }
   }
 
   &__count {
     min-width: 1.25rem;
     padding: 0 0.375rem;
     border-radius: $radius-pill;
-    background-color: rgba($magenta-500, 0.2);
-    color: $magenta-400;
-    font-size: $fs-xs;
-    font-weight: $fw-bold;
+    background-color: rgba($violet-400, 0.18);
+    color: $color-accent-text;
+    font-size: $fs-2xs;
+    font-weight: $fw-semibold;
     line-height: 1.25rem;
     text-align: center;
+
+    // Fuera del flujo: al aparecer tras la carga no desplaza el menú
+    @include mq(lg) {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 0.375rem);
+      transform: translateY(-50%);
+    }
+  }
+}
+
+// Búsqueda del header: la lupa despliega el campo dentro de la misma barra
+.site-search {
+  position: relative;
+  margin-left: auto;
+
+  &__toggle,
+  &__close {
+    display: none;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: $color-text-soft;
+    transition: color $duration-fast ease;
+
+    &:hover {
+      color: $color-title;
+    }
+  }
+
+  &__toggle {
+    width: $tap-target;
+    height: $tap-target;
+  }
+
+  &__close {
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  &__form {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    height: $tap-target;
+    padding-inline: $space-3 $space-1;
+    border: 1px solid $color-border-strong;
+    border-radius: $radius-xs;
+    // Fondo propio: sobre el hero el header sigue transparente y el texto se lee igual
+    background-color: rgba($color-bg, 0.86);
+    backdrop-filter: blur(12px);
+    transition: border-color $duration-fast ease;
+
+    &:focus-within {
+      border-color: $color-focus;
+    }
+  }
+
+  &__icon {
+    color: $color-text-muted;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $color-title;
+    font-size: $fs-sm;
+
+    &::placeholder {
+      color: $color-text-subtle;
+    }
+
+    &::-webkit-search-cancel-button {
+      appearance: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
   }
 }
 
 .js .site-header__toggle {
   display: inline-flex;
 
-  @include mq(md) {
+  @include mq(lg) {
     display: none;
   }
 }
 
-@include mq-down(md) {
+// Escritorio: el campo crece desde la lupa hacia la izquierda sin mover el resto del menú
+@include mq(lg) {
+  .js .site-search__toggle,
+  .js .site-search__close {
+    display: grid;
+  }
+
+  // Cierre: se recoge de izquierda a derecha hacia la lupa y al final se desvanece
+  .js .site-search__form {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: clamp(18rem, 28vw, 28rem);
+    clip-path: inset(0 0 0 calc(100% - #{$tap-target}));
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-50%);
+    transition:
+      clip-path $search-reveal $ease-film,
+      opacity 120ms ease ($search-reveal - 100ms),
+      visibility 0s linear ($search-reveal + 20ms),
+      border-color $duration-fast ease;
+  }
+
+  // Apertura: la misma animación al revés, de derecha a izquierda desde la lupa
+  .js .site-search.is-open {
+    .site-search__toggle {
+      visibility: hidden;
+    }
+
+    .site-search__form {
+      clip-path: inset(0);
+      opacity: 1;
+      visibility: visible;
+      transition:
+        clip-path $search-reveal $ease-film,
+        opacity 120ms ease,
+        visibility 0s,
+        border-color $duration-fast ease;
+    }
+  }
+
+  // Si el campo abierto tapa las secciones, estas se ocultan
+  .site-header.is-search-covering .site-nav__list--sections {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity $duration-fast ease, visibility 0s linear $duration-fast;
+  }
+}
+
+// Móvil y tablet: todo pasa al menú desplegable, con la búsqueda arriba
+@include mq-down(lg) {
   .js .site-nav {
     position: absolute;
     top: 100%;
     right: 0;
     left: 0;
     display: none;
-    padding: $space-3 $container-gutter $space-5;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 0;
+    max-height: calc(100svh - #{$header-height});
+    padding: $space-4 $gutter $space-5;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     border-bottom: 1px solid $color-border;
-    background-color: $color-bg-deep;
+    background-color: $color-bg;
+    @include quiet-scrollbar;
   }
 
   .js .site-nav--open {
-    display: block;
+    display: flex;
+  }
+
+  .js .site-search {
+    order: -1;
+    margin: 0 0 $space-3;
   }
 
   .js .site-nav__list {
     flex-direction: column;
+    flex-wrap: nowrap;
     align-items: stretch;
+    gap: 0;
+  }
+
+  .js .site-nav__list--secondary {
+    margin-top: $space-4;
+    border-top: 1px solid $color-border-strong;
   }
 
   .js .site-nav__link {
-    min-height: 3rem;
-    border-radius: $radius-sm;
-    font-size: $fs-base;
+    display: flex;
+    min-height: 3.25rem;
+    border-bottom: 1px solid $color-border;
+    color: $color-title;
+    font-family: $font-display;
+    font-size: $fs-lg;
+
+    &::after {
+      display: none;
+    }
   }
 }
 
 // Footer
 .site-footer {
-  margin-top: $space-8;
+  position: relative;
+  z-index: 1;
   border-top: 1px solid $color-border;
   background-color: $color-bg-deep;
   color: $color-text-muted;
@@ -186,106 +406,122 @@ main {
 
   &__inner {
     display: grid;
-    gap: $space-6;
-    padding-block: $space-7;
+    gap: $space-5 $space-7;
+    padding-block: $space-7 $space-6;
 
     @include mq(md) {
-      grid-template-columns: 2fr 1fr 1.5fr;
-      gap: $space-7;
+      grid-template-columns: auto 1fr;
+      align-items: start;
     }
   }
 
-  &__description {
-    max-width: 32ch;
-    margin-top: $space-3;
+  &__brand {
+    color: $color-title;
+    font-family: $font-display;
+    font-size: $fs-xl;
+    line-height: 1;
   }
 
-  &__heading {
-    margin-bottom: $space-3;
-    color: $color-text;
+  &__tagline {
+    display: block;
+    margin-top: $space-2;
+    color: $color-text-muted;
     font-family: $font-body;
-    font-size: $fs-xs;
-    font-weight: $fw-bold;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    font-size: $fs-sm;
   }
 
   &__list {
-    display: grid;
-    gap: $space-1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 $space-6;
     padding: 0;
     list-style: none;
+
+    @include mq(md) {
+      justify-content: flex-end;
+    }
   }
 
   &__link {
     display: inline-flex;
-    min-height: 2rem;
     align-items: center;
-    color: $color-text-muted;
+    min-height: $tap-target;
+    color: $color-text-soft;
     text-decoration: none;
 
     &:hover {
-      color: $color-text;
+      color: $color-title;
     }
   }
 
-  &__credits p + p {
-    margin-top: $space-2;
+  &__credits,
+  &__legal {
+    font-size: $fs-xs;
+
+    @include mq(md) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__credits {
+    max-width: 68ch;
   }
 
   &__credits a {
     color: $color-text-soft;
   }
 
-  &__bottom {
-    padding-block: $space-4;
+  &__legal {
+    padding-top: $space-5;
     border-top: 1px solid $color-border;
     color: $color-text-subtle;
-    font-size: $fs-xs;
   }
 }
 
 // Secciones
 .section {
-  padding-block: $space-7;
+  position: relative;
+  padding-block: $space-8;
 
   @include mq(md) {
-    padding-block: $space-8;
+    padding-block: $space-9;
   }
 
   &__header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: $space-3 $space-5;
-    margin-bottom: $space-5;
+    display: grid;
+    gap: $space-3 $space-6;
+    margin-bottom: $space-6;
+    // Destino de los enlaces del header: el título queda con aire bajo la barra
+    scroll-margin-top: $space-6;
 
     @include mq(md) {
-      margin-bottom: $space-6;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      margin-bottom: $space-7;
     }
   }
 
   &__eyebrow {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
-    margin-bottom: $space-2;
-    color: $color-primary-text;
-    font-size: $fs-xs;
-    font-weight: $fw-bold;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    @include caps;
+    margin-bottom: $space-3;
+    color: $color-accent-text;
   }
 
   &__title {
     font-size: $fs-2xl;
+    line-height: $lh-display;
   }
 
   &__description {
-    max-width: 60ch;
-    margin-top: $space-2;
+    max-width: 52ch;
+    margin-top: $space-3;
     color: $color-text-muted;
+  }
+
+  &__aside {
+    display: flex;
+    align-items: center;
+    gap: $space-4;
   }
 
   &__link {
@@ -293,21 +529,24 @@ main {
     align-items: center;
     gap: $space-2;
     min-height: $tap-target;
-    color: $color-text;
+    color: $color-title;
     font-size: $fs-sm;
-    font-weight: $fw-semibold;
     text-decoration: none;
+    white-space: nowrap;
 
-    &:hover {
-      color: $color-primary-text;
+    .icon {
+      transition: transform $duration-base $ease-out;
+    }
+
+    &:hover .icon {
+      transform: translateX(4px);
     }
   }
 }
 
+// Cabecera de Explorar
 .page-header {
   padding-block: $space-7 $space-5;
-  border-bottom: 1px solid $color-border;
-  background: radial-gradient(ellipse 60% 120% at 0% 0%, rgba($violet-600, 0.18), transparent 70%);
 
   @include mq(md) {
     padding-block: $space-8 $space-6;
@@ -315,11 +554,12 @@ main {
 
   &__title {
     font-size: $fs-3xl;
+    line-height: $lh-display;
   }
 
   &__description {
-    max-width: 60ch;
-    margin-top: $space-3;
+    max-width: 52ch;
+    margin-top: $space-4;
     color: $color-text-muted;
     font-size: $fs-md;
   }
@@ -329,7 +569,7 @@ main {
 .series-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $space-5 $space-4;
+  gap: $space-6 $space-4;
   padding: 0;
   list-style: none;
 
@@ -339,69 +579,79 @@ main {
 
   @include mq(md) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: $space-6 $space-5;
+    gap: $space-7 $space-5;
   }
 
   @include mq(xl) {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
-  &--featured {
-    @include mq(md) {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+  @include mq(xxl) {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
 
-    @include mq(lg) {
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
+  @include mq(xxxl) {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
   }
 }
 
-.genre-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $space-3;
-  padding: 0;
-  list-style: none;
-
-  @include mq(md) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: $space-4;
-  }
-}
-
-// Detalle
+// Ficha: la sinopsis ocupa todo el ancho disponible hasta la ficha técnica (a la derecha),
+// con una separación moderada; debajo, las temporadas a todo el ancho
 .show-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: $space-7;
-  padding-block: $space-7;
+  gap: $space-8;
+  padding-block: $space-7 $space-9;
 
-  @include mq(lg) {
-    grid-template-columns: minmax(0, 1fr) 20rem;
-    gap: $space-8;
-    padding-block: $space-8;
+  @include mq(md) {
+    gap: $space-9;
   }
 
-  &__main {
+  &__intro {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
     gap: $space-7;
+
+    @include mq(lg) {
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+      align-items: start;
+      column-gap: clamp(3rem, 5vw, 6rem);
+    }
+  }
+
+  &__synopsis,
+  &__episodes {
     min-width: 0;
+  }
+
+  // El texto ocupa la columna entera: la separación con la ficha técnica es solo el hueco entre columnas
+  &__synopsis .prose {
+    max-width: none;
+  }
+
+  // "5 temporadas · 62 episodios…" en una línea si cabe
+  &__episodes .section__description {
+    max-width: none;
   }
 }
 
 .detail-status:has(> [data-status]:not([hidden])) {
   min-height: 50vh;
-  padding-block: $space-7;
+  padding-block: $space-8;
 }
 
-// Mientras carga reserva la pantalla para que el footer no salte
 .detail-status:has(> [data-status="loading"]:not([hidden])) {
   min-height: calc(100vh - #{$header-height});
 }
 
 // Vista de favoritos desde el primer pintado (ver script en explorar.html)
+[data-favorites-only] {
+  display: none;
+}
+
+.view-favorites [data-favorites-only] {
+  display: block;
+}
+
 .view-favorites [data-explore-view] {
   display: none !important;
 }

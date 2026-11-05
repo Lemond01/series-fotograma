@@ -97,6 +97,26 @@ function normalizeImage(image) {
   return { medium: medium ?? original, original: original ?? medium };
 }
 
+// Fondo panorámico (solo si la respuesta incluye _embedded.images)
+const BACKDROP_TARGET_WIDTH = 1920;
+const BACKDROP_MIN_WIDTH = 1280;
+
+function pickBackdrop(images) {
+  if (!Array.isArray(images)) return null;
+  const backgrounds = images
+    .filter((image) => image?.type === 'background')
+    .map((image) => ({ main: image.main === true, ...image.resolutions?.original }))
+    .filter((image) => textOrNull(image.url) && numberOrNull(image.width));
+  if (backgrounds.length === 0) return null;
+  const wide = backgrounds.filter((image) => image.width >= BACKDROP_MIN_WIDTH);
+  let pool = wide.length ? wide : backgrounds;
+  if (pool.some((image) => image.main)) pool = pool.filter((image) => image.main);
+  // El más cercano a 1920 px: suficiente calidad sin descargar originales de 4K u 8K
+  const best = pool.reduce((a, b) => (
+    Math.abs(b.width - BACKDROP_TARGET_WIDTH) < Math.abs(a.width - BACKDROP_TARGET_WIDTH) ? b : a));
+  return { url: best.url, width: best.width, height: numberOrNull(best.height) };
+}
+
 function normalizeShow(show) {
   if (!isObject(show) || typeof show.id !== 'number') return null;
   const premiered = textOrNull(show.premiered);
@@ -109,6 +129,7 @@ function normalizeShow(show) {
     genres: Array.isArray(show.genres) ? show.genres.filter((g) => typeof g === 'string') : [],
     rating: numberOrNull(show.rating?.average),
     image: normalizeImage(show.image),
+    backdrop: pickBackdrop(show._embedded?.images),
     summary: textOrNull(show.summary),
     language: textOrNull(show.language),
     status: textOrNull(show.status),
@@ -169,9 +190,12 @@ export async function getShowIndex(page = 0, { signal } = {}) {
   return data.map(normalizeShow).filter(Boolean);
 }
 
-// GET /shows/:id
-export async function getShowDetails(id) {
-  const data = await cachedRequest(`show:${id}`, `/shows/${encodeURIComponent(id)}`);
+// GET /shows/:id (con ?embed=images cuando se necesita el fondo panorámico)
+export async function getShowDetails(id, { withImages = false } = {}) {
+  const path = `/shows/${encodeURIComponent(id)}`;
+  const data = withImages
+    ? await cachedRequest(`show:${id}:images`, path, { params: { embed: 'images' } })
+    : await cachedRequest(`show:${id}`, path);
   const show = normalizeShow(data);
   if (!show) throw new ApiError('invalid', 'Formato de respuesta inesperado');
   return show;
