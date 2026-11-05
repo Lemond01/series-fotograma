@@ -8,11 +8,12 @@ import { createHeroCarousel, initHeroScroll } from './hero.js';
 
 // Selección editorial (IDs de TVmaze): el carrusel usa series con fondo panorámico real
 const HERO_SHOW_IDS = [82, 2993, 335, 5];
-const EDITORIAL_SHOW_IDS = [169, 179, 1825, 32, 1371];
+const EDITORIAL_SHOW_IDS = [169, 179, 1825, 32, 1371, 919]; // 919: Attack on Titan (anime)
 const DISCOVER_MIN_RATING = 8;
 const DISCOVER_LIMIT = 14;
 const SCHEDULE_LIMIT = 8;
-const FEATURE_SUMMARY_LENGTH = 260;
+const PREVIEW_SUMMARY_LENGTH = 260;
+const PREVIEW_DELAY_MS = 1000; // tiempo con el ratón sobre un póster antes de mostrar su vista previa
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -82,56 +83,35 @@ function createLoadableSection({ grid, status, load, render }) {
 }
 
 // Selección editorial
-function createFeature(show, position) {
-  const item = createElement('li', 'editorial-grid__feature');
-  const article = createElement('article', 'feature');
-  article.dataset.showId = show.id;
+// Vista previa dentro del póster: lo que antes era la tarjeta destacada, ahora en cada serie.
+// Es un atajo para el ratón (aria-hidden, botones fuera del orden de tabulación): con teclado y
+// lector de pantalla se usan el enlace y el corazón de la propia tarjeta.
+function createPreview(show, position) {
+  const preview = createElement('div', 'card-preview');
+  preview.setAttribute('aria-hidden', 'true');
 
-  const media = createElement('a', 'feature__media media');
-  media.href = detailUrl(show.id);
-  media.tabIndex = -1;
-  media.setAttribute('aria-hidden', 'true');
-  if (show.image) {
-    const img = createElement('img', 'media__img feature__img');
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    img.width = 680;
-    img.height = 1000;
-    media.append(img);
-    setImage(img, show.image.original, '');
-  } else {
-    media.classList.add('media--empty');
-  }
-
-  const body = createElement('div', 'feature__body');
-  const title = createElement('h3', 'feature__title');
-  const link = createElement('a', null, show.name);
-  link.href = detailUrl(show.id);
-  title.append(link);
-
-  const meta = createElement('ul', 'meta-list');
+  const meta = createElement('ul', 'meta-list card-preview__meta');
   [show.year, show.genres.slice(0, 2).map(translateGenre).join(', ') || null]
     .filter(Boolean)
     .forEach((text) => meta.append(createElement('li', 'meta-list__item', text)));
   if (show.rating !== null) {
     const rating = createElement('li', 'meta-list__item meta-list__item--rating');
-    rating.append(
-      createIcon('star', 'icon icon--sm icon--filled'),
-      createElement('span', 'u-visually-hidden', 'Puntuación: '),
-      formatRating(show.rating),
-    );
+    rating.append(createIcon('star', 'icon icon--sm icon--filled'), formatRating(show.rating));
     meta.append(rating);
   }
 
   const summaryText = htmlToText(show.summary);
-  const summary = createElement('p', 'feature__summary', summaryText ? truncate(summaryText, FEATURE_SUMMARY_LENGTH) : 'Sinopsis no disponible.');
+  const summary = createElement('p', 'card-preview__summary', summaryText ? truncate(summaryText, PREVIEW_SUMMARY_LENGTH) : 'Sinopsis no disponible.');
   if (summaryText) summary.lang = 'en';
 
-  const actions = createElement('div', 'feature__actions');
+  const actions = createElement('div', 'card-preview__actions');
   const more = createElement('a', 'btn btn--primary', 'Ver ficha');
   more.href = detailUrl(show.id);
+  more.tabIndex = -1;
+  more.append(createIcon('arrow-right', 'icon icon--sm'));
   const favorite = createElement('button', 'btn btn--secondary btn--favorite');
   favorite.type = 'button';
+  favorite.tabIndex = -1;
   favorite.dataset.favoriteToggle = '';
   const label = createElement('span', null, 'Agregar a favoritos');
   label.dataset.favoriteLabel = '';
@@ -139,9 +119,33 @@ function createFeature(show, position) {
   bindFavoriteButton(favorite, show);
   actions.append(more, favorite);
 
-  body.append(createElement('p', 'feature__eyebrow', `Elegida · ${String(position).padStart(2, '0')}`), title, meta, summary, actions);
-  article.append(media, body);
-  item.append(article);
+  preview.append(
+    createElement('p', 'card-preview__eyebrow', `Elegida · ${String(position).padStart(2, '0')}`),
+    createElement('p', 'card-preview__title', show.name),
+    meta,
+    summary,
+    actions,
+  );
+  return preview;
+}
+
+// La vista previa aparece tras PREVIEW_DELAY_MS con el ratón encima y se cierra al salir
+function createEditorialCard(show, position) {
+  const item = createSeriesCard(show);
+  const card = item.querySelector('.series-card');
+  card.classList.add('series-card--preview');
+  card.append(createPreview(show, position));
+
+  let timer = 0;
+  card.addEventListener('pointerenter', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    clearTimeout(timer);
+    timer = setTimeout(() => card.classList.add('is-previewing'), PREVIEW_DELAY_MS);
+  });
+  card.addEventListener('pointerleave', () => {
+    clearTimeout(timer);
+    card.classList.remove('is-previewing');
+  });
   return item;
 }
 
@@ -155,7 +159,7 @@ const loadEditorial = editorialGrid && createLoadableSection({
     failures.forEach((r) => console.error('[Inicio] Error al cargar una serie de la selección:', r.reason));
     return { items: results.filter((r) => r.status === 'fulfilled').map((r) => r.value), error: failures[0]?.reason };
   },
-  render: ([first, ...rest]) => [createFeature(first, 1), ...rest.map(createSeriesCard)],
+  render: (shows) => shows.map((show, index) => createEditorialCard(show, index + 1)),
 });
 
 // Descubre más series: muestra del índice de TVmaze (no es un ranking)
@@ -203,13 +207,17 @@ if (rail) {
 }
 
 // Rueda vertical sobre la galería: avanza o retrocede tarjeta a tarjeta.
-// Cada gesto de rueda (eventos seguidos sin pausas largas) pertenece a la galería o a la página,
-// nunca a las dos: así la página no se mueve mientras la galería se desplaza, ni al revés.
+// Solo se activa si el ratón lleva un rato sobre la galería sin que la página se haya movido:
+// al bajar por la página, que la galería quede bajo el cursor no la «captura».
+// Además, cada gesto de rueda pertenece entero a la galería o a la página, nunca a las dos.
 function initRailWheel(viewport) {
   const STEP_THRESHOLD = 50; // px acumulados para dar un paso (trackpad)
   const NOTCH = 100; // una muesca de rueda ≈ 100 px; si llegan agrupadas se avanzan varias tarjetas
   const GESTURE_GAP = 300; // ms sin eventos para dar un gesto por terminado
+  const DWELL_MS = 1000; // tiempo con el ratón sobre la galería, y la página quieta, antes de que la rueda la mueva
   let accumulated = 0;
+  let hoverStart = null;
+  let lastPageScroll = -Infinity;
   let target = null;
   let settleTimer = 0;
   const gesture = { owner: null, last: -Infinity };
@@ -240,6 +248,17 @@ function initRailWheel(viewport) {
 
   const isNewGesture = (event) => event.timeStamp - gesture.last >= GESTURE_GAP;
 
+  // Espera: cuenta desde que el ratón entró en la galería o desde el último desplazamiento de la página
+  const isArmed = (now) => hoverStart !== null && now - Math.max(hoverStart, lastPageScroll) >= DWELL_MS;
+
+  const startHover = (event) => {
+    if (event.pointerType === 'mouse' && hoverStart === null) hoverStart = event.timeStamp;
+  };
+  viewport.addEventListener('pointerenter', startHover);
+  viewport.addEventListener('pointermove', startHover, { passive: true });
+  viewport.addEventListener('pointerleave', () => { hoverStart = null; });
+  window.addEventListener('scroll', (event) => { lastPageScroll = event.timeStamp; }, { passive: true });
+
   // Rueda fuera de la galería: el gesto es de la página
   window.addEventListener('wheel', (event) => {
     if (viewport.contains(event.target)) return;
@@ -257,11 +276,12 @@ function initRailWheel(viewport) {
     const vertical = Math.abs(event.deltaY) > Math.abs(event.deltaX);
 
     // El primer evento decide a quién pertenece el gesto completo:
-    // vertical con recorrido disponible → galería; vertical en un extremo → página;
+    // vertical, tras la espera y con recorrido disponible → galería; si no → página;
     // horizontal (trackpad) → desplazamiento nativo de la galería
     if (isNewGesture(event)) {
       accumulated = 0;
       if (!vertical) gesture.owner = 'native';
+      else if (!isArmed(event.timeStamp)) gesture.owner = 'page';
       else gesture.owner = positionsAhead(Math.sign(event.deltaY)).length > 0 ? 'rail' : 'page';
     }
     gesture.last = event.timeStamp;

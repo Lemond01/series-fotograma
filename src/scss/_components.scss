@@ -605,112 +605,161 @@
     pointer-events: none;
     will-change: opacity;
   }
+
+  // Descripciones de sección a lo ancho: en pantalla grande ocupan una sola línea
+  .section__description {
+    max-width: none;
+  }
+
+  // Secciones de Inicio más juntas que las generales (~100 px entre una y otra en escritorio)
+  > .section {
+    padding-block: $space-6;
+
+    @include mq(md) {
+      padding-block: $space-6 + $space-2;
+    }
+
+    &:last-child {
+      padding-bottom: $space-8;
+    }
+  }
 }
 
-// Selección editorial
+// Selección editorial: seis pósteres (dos por fila en móvil, tres en tablet, los seis desde xl)
 .editorial-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: $space-7 $space-4;
+  gap: $space-6 $space-4;
   padding: 0;
   list-style: none;
 
+  @include mq(sm) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   @include mq(md) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: $space-8 $space-5;
-  }
-
-  @include mq(lg) {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
     gap: $space-7 $space-5;
-
-    > :where(li) {
-      grid-column: span 2;
-    }
   }
 
-  // Pantallas anchas: destacada y las cuatro elegidas en una sola fila
-  @include mq(xxl) {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
-  &__feature {
-    grid-column: 1 / -1;
-
-    @include mq(lg) {
-      grid-row: span 2;
-      grid-column: span 6;
-    }
-
-    @include mq(xxl) {
-      grid-row: auto;
-      grid-column: span 4;
-    }
+  @include mq(xl) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
-.feature {
-  display: grid;
-  gap: $space-5;
-
-  @include mq(md) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: end;
-    gap: $space-6;
-  }
-
-  &__media {
-    display: block;
-    aspect-ratio: 4 / 5;
-    border-radius: $radius-xs;
-
-    @include mq(md) {
-      aspect-ratio: 2 / 3;
-    }
-  }
-
-  &__img {
-    transition: transform 900ms $ease-out;
-  }
-
-  &__media:hover &__img {
-    transform: scale(1.03);
-  }
+// Vista previa dentro del póster: aparece tras 2 s con el ratón encima (.is-previewing,
+// desde main.js) o al llegar con el teclado al enlace de la tarjeta
+.card-preview {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: $space-2;
+  aspect-ratio: 2 / 3; // la misma caja que el póster
+  padding: $space-4;
+  overflow: hidden;
+  border-radius: $radius-xs;
+  background: linear-gradient(
+    to top,
+    rgba($color-bg-deep, 0.97) 0%,
+    rgba($color-bg-deep, 0.92) 55%,
+    rgba($color-bg-deep, 0.7) 100%
+  );
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; // los clics fuera de los botones llegan al enlace del póster
+  container-type: inline-size;
+  transition: opacity $duration-base ease, visibility 0s linear $duration-base;
 
   &__eyebrow {
-    @include caps;
+    @include caps($fs-2xs);
     color: $color-accent-text;
   }
 
   &__title {
-    margin-block: $space-3 $space-4;
-    font-size: $fs-2xl;
-    line-height: $lh-display;
+    color: $color-title;
+    font-family: $font-display;
+    font-size: $fs-lg;
+    font-weight: $fw-medium;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+  // Sin separadores: en pósteres estrechos los datos pasan a otra línea sin barras sueltas
+  &__meta {
+    column-gap: $space-3;
+    font-size: $fs-xs;
 
-    a {
-      transition: color $duration-fast ease;
-    }
-
-    a:hover {
-      color: $color-accent-text;
+    .meta-list__item::before {
+      display: none;
     }
   }
 
   &__summary {
-    margin-top: $space-4;
+    display: -webkit-box;
+    overflow: hidden;
     color: $color-text-soft;
+    font-size: $fs-sm;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
   }
 
   &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: $space-3;
-    margin-top: $space-5;
+    display: grid;
+    gap: $space-2;
+    margin-top: $space-2;
+    pointer-events: auto;
+
+    .btn {
+      justify-content: center;
+      width: 100%;
+      min-height: 2.5rem;
+      padding-inline: $space-3;
+      font-size: $fs-sm;
+    }
+  }
+
+  // Pósteres estrechos: menos líneas de sinopsis o ninguna, para que nunca se desborde
+  // (los anchos son del contenido, sin el relleno de la vista previa)
+  @container (max-width: 15rem) {
+    &__summary {
+      -webkit-line-clamp: 4;
+    }
+  }
+
+  @container (max-width: 12.5rem) {
+    &__summary {
+      -webkit-line-clamp: 3;
+    }
+
+    &__title {
+      font-size: $fs-md;
+    }
+  }
+
+  @container (max-width: 11rem) {
+    &__summary {
+      display: none;
+    }
+  }
+}
+
+.series-card.is-previewing .card-preview,
+.series-card--preview:has(.series-card__link:focus-visible) .card-preview {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity $duration-base ease, visibility 0s;
+}
+
+// Mientras se ve la vista previa, la nota y el corazón pequeños del póster se ocultan (están en ella)
+.series-card.is-previewing,
+.series-card--preview:has(.series-card__link:focus-visible) {
+  .series-card__rating,
+  .series-card__favorite {
+    opacity: 0;
+    pointer-events: none;
   }
 }
 
@@ -1483,37 +1532,58 @@
   }
 }
 
-.panel {
-  padding-top: $space-5;
-  border-top: 1px solid $color-border-strong;
-
-  &__title {
-    margin-bottom: $space-3;
-    font-size: $fs-xl;
-  }
-}
-
+// Ficha técnica: franja de datos bajo la sinopsis, en columnas iguales con separadores finos
+// (2, 3 o 4 columnas según el ancho; desde xl, todos los datos en una sola fila).
+// Sin línea ni título visibles: el título queda solo para lectores de pantalla
 .fact-list {
+  --fact-gap: #{$space-6};
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $space-5 var(--fact-gap);
+  margin: 0;
+  overflow: hidden; // recorta el separador a la izquierda de la primera columna
+
+  @include mq(sm) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include mq(md) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  @include mq(xl) {
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+  }
 
   &__item {
+    position: relative;
     display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    gap: $space-3;
-    padding-block: $space-3;
-    border-bottom: 1px solid $color-border;
-    font-size: $fs-sm;
+    align-content: start;
+    gap: $space-1;
+
+    // Separador vertical centrado en el hueco entre columnas
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(var(--fact-gap) / -2);
+      width: 1px;
+      background-color: $color-border-strong;
+    }
   }
 
   &__term {
     @include caps;
-    padding-top: 0.15rem;
     color: $color-text-muted;
   }
 
   &__value {
     margin: 0;
     color: $color-title;
+    font-size: $fs-base;
     overflow-wrap: anywhere;
   }
 }

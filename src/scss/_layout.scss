@@ -455,16 +455,13 @@ main {
   }
 
   &__credits,
+  &__disclaimer,
   &__legal {
     font-size: $fs-xs;
 
     @include mq(md) {
       grid-column: 1 / -1;
     }
-  }
-
-  &__credits {
-    max-width: 68ch;
   }
 
   &__credits a {
@@ -595,8 +592,7 @@ main {
   }
 }
 
-// Ficha: la sinopsis ocupa todo el ancho disponible hasta la ficha técnica (a la derecha),
-// con una separación moderada; debajo, las temporadas a todo el ancho
+// Ficha: sinopsis a todo el ancho, debajo la ficha técnica en franja y después las temporadas
 .show-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -610,12 +606,6 @@ main {
   &__intro {
     display: grid;
     gap: $space-7;
-
-    @include mq(lg) {
-      grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
-      align-items: start;
-      column-gap: clamp(3rem, 5vw, 6rem);
-    }
   }
 
   &__synopsis,
@@ -623,7 +613,7 @@ main {
     min-width: 0;
   }
 
-  // El texto ocupa la columna entera: la separación con la ficha técnica es solo el hueco entre columnas
+  // La sinopsis ocupa todo el ancho de la página
   &__synopsis .prose {
     max-width: none;
   }
